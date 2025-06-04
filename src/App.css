@@ -1,0 +1,29 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: left;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.submit {
+  margin-top: 1rem;
+}
+
+.submit:hover {
+  text-decoration: underline;
+}
+
+.border-drag {
+    padding: 10%;
+    border-style: dashed;
+    border-width: 3px;
+    border-radius: 5%;
+    border-color: gray;
+}
