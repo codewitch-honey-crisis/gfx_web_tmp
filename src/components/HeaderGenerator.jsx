@@ -255,13 +255,13 @@ const HeaderGenerator = () => {
             URL.revokeObjectURL(downloadUrl);
         }
         const alink = document.getElementById("downloadLink");
+        downloadUrl = URL.createObjectURL(blb);
         if (alink) {
             if (alink.href != "#") {
                 URL.revokeObjectURL(alink.href);
             }
             alink.href = downloadUrl;
         }
-        downloadUrl = URL.createObjectURL(blb);
     }
     const generateContentFile = () => {
         if (!gencache && !generated && fileInfo.file) {
