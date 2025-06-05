@@ -202,7 +202,7 @@ const generateHeader = (identifier, fileName, isText, fileType, outputType, data
     return result;
 }
 const getDownloadName = (ident, genType) => {
-    if (genType == "C") {
+    if (genType == "C" || genType==undefined || genType=="") {
         return `${ident}.h`;
     }
     return `${ident}.hpp`;
@@ -211,69 +211,69 @@ const HeaderGenerator = () => {
     let downloadUrl = "";
     var gencache;
     const [fileInfo, setFileInfo] = useState("");
-    //const [fileType, setFileType] = useState("");
     const [ident, setIdent] = useState("");
     const [genType, setGenType] = useState("");
-    const [generated,setGenerated] = useState("genstate");
 
     const handleFileChange = (e) => {
         setFileInfo({ file: e.target.files[0], type: e.target.files[0].type });
         setIdent(toIdentifier(e.target.files[0].name));
         gencache = undefined;
-        setGenerated(undefined);
-    
     };
     const handleIdentChange = (e) => {
         if(ident!=e.target.value) {
             setIdent(e.target.value);
             gencache = undefined;
-            setGenerated(undefined);
         }
     }
     const handleTypeChange = (e) => {
         if(genType!=e.target.value) {
             setGenType(e.target.value);
             gencache = undefined;
-            setGenerated(undefined);
         }
     }
     const generateContentClip = () => {
-        if (!gencache && !generated && fileInfo.file) {
+        if (!gencache && fileInfo.file) {
             let reader = new FileReader();
             reader.readAsArrayBuffer(fileInfo.file);
             reader.onload = async function (evt) {
                 const isText = (fileInfo.type.endsWith("/json") || fileInfo.type.endsWith("/xml") || fileInfo.type.endsWith("+xml") || fileInfo.type.startsWith("text/"));
+                console.log("generating content to clipboard");
                 gencache=generateHeader(ident, fileInfo.file.name, isText, fileInfo.type, genType, evt.target.result);
-                setGenerated(gencache);
                 await navigator.clipboard.writeText(gencache);
             }
+        } else if(gencache) {
+            console.log("writing content to clipboard");
+            navigator.clipboard.writeText(gencache);
         }
     }
     const setGeneratedFileUrl = () => {
-        const blb = new Blob([generated], { type: "text/plain" });
+        const blb = new Blob([gencache], { type: "text/plain" });
         if (downloadUrl != undefined && downloadUrl.length > 0) {
             URL.revokeObjectURL(downloadUrl);
         }
-        const alink = document.getElementById("downloadLink");
         downloadUrl = URL.createObjectURL(blb);
+        const alink = document.getElementById("downloadLink");        
         if (alink) {
             if (alink.href != "#") {
                 URL.revokeObjectURL(alink.href);
             }
+            alink.download = getDownloadName(ident, genType);
             alink.href = downloadUrl;
+            alink.click();
         }
     }
     const generateContentFile = () => {
-        if (!gencache && !generated && fileInfo.file) {
+        if (!gencache && fileInfo.file) {
             let reader = new FileReader();
             reader.readAsArrayBuffer(fileInfo.file);
             reader.onload = function (evt) {
                 const isText = (fileInfo.type.endsWith("/json") || fileInfo.type.endsWith("/xml") || fileInfo.type.endsWith("+xml") || fileInfo.type.startsWith("text/"));
+                console.log("generating content to file");
                 gencache=generateHeader(ident, fileInfo.file.name, isText, fileInfo.type, genType, evt.target.result);
-                setGenerated(gencache);
                 setGeneratedFileUrl();       
             }
-        } else if(generated) {
+        } else if(gencache) {
+            console.log("writing content to file");
             setGeneratedFileUrl();
         }
     }
@@ -284,7 +284,6 @@ const HeaderGenerator = () => {
         setFileInfo({ file: e.dataTransfer.files[0], type: e.dataTransfer.files[0].type });
         setIdent(toIdentifier(e.dataTransfer.files[0].name));
         gencache = undefined;
-        setGenerated(undefined);
     }
     return (
         <div id="drop-target" onDrop={onDropFiles} className={"border-drag"} onDragOver={(event) => event.preventDefault()}>
@@ -325,13 +324,14 @@ const HeaderGenerator = () => {
 
             {fileInfo && (
                 <>
-                    <a id="downloadLink" href="#" onClick={generateContentFile} download={getDownloadName(ident, genType)}
+                    <button onClick={generateContentFile}
                         className="submit"
-                    >Download header file</a><br />
-                    <a href="#"
+                    >Download header file</button><br />
+                    <button 
                         onClick={generateContentClip}
                         className="submit"
-                    >Copy to clipboard</a>
+                    >Copy to clipboard</button>
+                    <a id ="downloadLink" href="#" hidden></a>
                 </>
             )}
         </div>

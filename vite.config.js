@@ -12,7 +12,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        generator: resolve(__dirname, 'header/index.html'),
+        header: resolve(__dirname, 'header/index.html'),
         icon_pack: resolve(__dirname, 'icon-pack/index.html')
       },
     },

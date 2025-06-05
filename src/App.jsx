@@ -12,8 +12,10 @@ function App() {
       <Routes>
         
           <Route path="/" element={<Home />} />
-          <Route path="header" element={<Header />} />
-          <Route path="icon-pack" element={<IconPack />} />
+          <Route path="header/" element={<Header />} />
+          <Route path="header/index.html" element={<Header />} />
+          <Route path="icon-pack/" element={<IconPack />} />
+          <Route path="icon-pack/index.html" element={<IconPack />} />
           <Route path="*" element={<NoPage />} />
         
       </Routes>
