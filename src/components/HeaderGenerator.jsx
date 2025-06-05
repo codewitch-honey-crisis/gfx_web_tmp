@@ -12,7 +12,7 @@ const generateText = (data, startSpacing = 0) => {
     const view = new DataView(data);
     let j = startSpacing;
     for (var i = 0; i < view.byteLength; i++) {
-        if (i > 0 && 0 == (j % 80) && i < i < view.byteLength - 1) {
+        if (i > 0 && 0 == (j % 80) && i < view.byteLength - 1) {
             result += "\"\r\n    \"";
         }
         var charcode = view.getUint8(i);
@@ -247,15 +247,22 @@ const HeaderGenerator = () => {
         if (isNaN(n)) {
             n = 0;
         }
+        console.log("font size value change")
         setFontSize(n);
         gencache = undefined;
     }
     const handleFontSizeUnitChange = (e) => {
         let u = e.target.value;
+        if(u=="none"||u==undefined||u=="") {
+            setFontSize(0);
+            setFontUnits(u);
+            return;
+        }
         if (u != "pt" && u != "px") {
             u = "pt";
         }
         setFontUnits(u);
+        setFontSize(fontSize); // force a refresh
         gencache = undefined;
     }
     const handleTypeChange = (e) => {
@@ -266,8 +273,8 @@ const HeaderGenerator = () => {
     }
     const getCreatedTypeName = () => {
         if (fileInfo) {
-            if(!genType || genType=="" || genType=="C") {
-                if(isText(fileInfo.type)) {
+            if (!genType || genType == "" || genType == "C") {
+                if (isText(fileInfo.type)) {
                     return "const char*";
                 } else {
                     return "const uint8_t[]";
@@ -290,7 +297,7 @@ const HeaderGenerator = () => {
             }
 
             return "gfx::const_buffer_stream";
-            
+
         }
         return undefined;
     }
@@ -310,20 +317,19 @@ const HeaderGenerator = () => {
         }
     }
     const setGeneratedFileUrl = () => {
+        // this is a hack. alink must be modified outside React's normal rendering sequence
+        // due to the on the fly generate+download in one click feature. It's a bit kludgy and
+        // useRef/ref doesn't like to work with it.
         const blb = new Blob([gencache], { type: "text/plain" });
         if (downloadUrl != undefined && downloadUrl.length > 0) {
             URL.revokeObjectURL(downloadUrl);
         }
         downloadUrl = URL.createObjectURL(blb);
-        const alink = document.getElementById("downloadLink");
-        if (alink) {
-            if (alink.href != "#") {
-                URL.revokeObjectURL(alink.href);
-            }
-            alink.download = getDownloadName(ident, genType);
-            alink.href = downloadUrl;
-            alink.click();
-        }
+
+        const alink = document.createElement("a");
+        alink.download = getDownloadName(ident, genType);
+        alink.href = downloadUrl;
+        alink.click();
     }
     const generateContentFile = () => {
         if (!gencache && fileInfo.file) {
@@ -370,7 +376,15 @@ const HeaderGenerator = () => {
                         </tr>
                         {fileInfo && isTrueType(fileInfo.file.name) && genType.startsWith("G") && (
                             <tr>
-                                <td><label>Size: </label></td><td><input type="text" defaultValue={fontSize} onChange={handleFontSizeValueChange} /><select onChange={handleFontSizeUnitChange} defaultValue={fontUnits}><option value="pt">pt</option><option value="px">px</option></select></td>
+                                <td><label>Size: </label></td>
+                                <td>
+                                    <input type="text" onChange={handleFontSizeValueChange} onKeyUp={handleFontSizeValueChange} />
+                                    <select onChange={handleFontSizeUnitChange}>
+                                        <option>none</option>
+                                        <option value="pt">pt</option>
+                                        <option value="px">px</option>
+                                    </select>
+                                </td>
                             </tr>
                         )}
                     </tbody>
@@ -399,7 +413,6 @@ const HeaderGenerator = () => {
                         onClick={generateContentClip}
                         className="submit"
                     >Copy to clipboard</button>
-                    <a id="downloadLink" href="#" hidden></a>
                 </>
             )}
         </div>
