@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const toHex = (code) => {
     let result = code.toString(16);
-    if (result.length == 1) {
+    if (result.length === 1) {
         return "0" + result;
     }
     return result;
@@ -12,7 +12,7 @@ const generateText = (data, startSpacing = 0) => {
     const view = new DataView(data);
     let j = startSpacing;
     for (var i = 0; i < view.byteLength; i++) {
-        if (i > 0 && 0 == (j % 80) && i < view.byteLength - 1) {
+        if (i > 0 && 0 === (j % 80) && i < view.byteLength - 1) {
             result += "\"\r\n    \"";
         }
         var charcode = view.getUint8(i);
@@ -54,7 +54,7 @@ const generateBinary = (data) => {
     let result = "";
     const view = new DataView(data);
     for (let i = 0; i < view.byteLength; ++i) {
-        if (0 == (i % (30))) {
+        if (0 === (i % (30))) {
             if (i < view.byteLength - 1) {
                 result += "\r\n    ";
             } else {
@@ -88,7 +88,7 @@ const generateByteArrayLiteral = (name, data, isStatic) => {
 }
 const toIdentifier = (name) => {
     let result = "";
-    if (name.length == 0) {
+    if (name.length === 0) {
         return "_";
     }
     if (name[0] >= '0' && name[0] <= '9') {
@@ -105,7 +105,7 @@ const toIdentifier = (name) => {
 }
 const checkWinFontMagic = (data) => {
     const view = new DataView(data);
-    return view.byteLength > 2 && view.getUint8(0) == 77 && view.getUint8(1) == 90;
+    return view.byteLength > 2 && view.getUint8(0) === 77 && view.getUint8(1) === 90;
 }
 const isTrueType = (name) => {
     const n = name.toLowerCase();
@@ -130,13 +130,13 @@ const generateHeader = (identifier, fileName, isText, fileType, size, units, out
     let isJpg = false;
     let isPng = false;
     if (isGfx) {
-        if (fileType == undefined || fileType == "" && fileName.toLowerCase().endsWith(".fon")) {
+        if (fileType === undefined || fileType === "" && fileName.toLowerCase().endsWith(".fon")) {
             isFon = checkWinFontMagic(data);
             isSpecialized = isFon;
-        } else if (fileType == "image/jpeg") {
+        } else if (fileType === "image/jpeg") {
             isJpg = true;
             isSpecialized = true;
-        } else if (fileType == "image/png") {
+        } else if (fileType === "image/png") {
             isPng = true;
             isSpecialized = true;
         } else if (fileName.toLowerCase().endsWith(".vlw")) {
@@ -215,7 +215,7 @@ const generateHeader = (identifier, fileName, isText, fileType, size, units, out
     return result;
 }
 const getDownloadName = (ident, genType) => {
-    if (genType == "C" || genType == undefined || genType == "") {
+    if (genType === "C" || genType === undefined || genType === "") {
         return `${ident}.h`;
     }
     return `${ident}.hpp`;
@@ -253,7 +253,7 @@ const HeaderGenerator = () => {
     }
     const handleFontSizeUnitChange = (e) => {
         let u = e.target.value;
-        if(u=="none"||u==undefined||u=="") {
+        if(u==="none"||u===undefined||u==="") {
             setFontSize(0);
             setFontUnits(u);
             return;
@@ -273,7 +273,7 @@ const HeaderGenerator = () => {
     }
     const getCreatedTypeName = () => {
         if (fileInfo) {
-            if (!genType || genType == "" || genType == "C") {
+            if (!genType || genType === "" || genType === "C") {
                 if (isText(fileInfo.type)) {
                     return "const char*";
                 } else {
@@ -284,11 +284,11 @@ const HeaderGenerator = () => {
             const fileName = fileInfo.file.name;
             const size = fontSize;
             const units = fontUnits;
-            if (fileType == undefined || fileType == "" && fileName.toLowerCase().endsWith(".fon")) {
+            if (fileType === undefined || fileType === "" && fileName.toLowerCase().endsWith(".fon")) {
                 return "gfx::win_font";
-            } else if (fileType == "image/jpeg") {
+            } else if (fileType === "image/jpeg") {
                 return "gfx::jpg_image";
-            } else if (fileType == "image/png") {
+            } else if (fileType === "image/png") {
                 return "gfx::png_image";
             } else if (fileName.toLowerCase().endsWith(".vlw")) {
                 return "gfx::vlw_font";
@@ -378,8 +378,8 @@ const HeaderGenerator = () => {
                             <tr>
                                 <td><label>Size: </label></td>
                                 <td>
-                                    <input type="text" onChange={handleFontSizeValueChange} onKeyUp={handleFontSizeValueChange} />
-                                    <select onChange={handleFontSizeUnitChange}>
+                                    <input type="text" value={fontSize} onChange={handleFontSizeValueChange} onKeyUp={handleFontSizeValueChange} />
+                                    <select onChange={handleFontSizeUnitChange} value={fontUnits}>
                                         <option>none</option>
                                         <option value="pt">pt</option>
                                         <option value="px">px</option>
