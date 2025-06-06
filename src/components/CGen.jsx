@@ -7,64 +7,71 @@ const toHex = (code) => {
 }
 export const generateText = (data, startSpacing = 0) => {
     let result = "\"";
-    const view = new DataView(data);
-    let j = startSpacing;
-    for (var i = 0; i < view.byteLength; i++) {
-        if (i > 0 && 0 === (j % 80) && i < view.byteLength - 1) {
-            result += "\"\r\n    \"";
-        }
-        var charcode = view.getUint8(i);
-        if (charcode < 0x80) {
-            const ch = String.fromCharCode(charcode);
-            switch (ch) {
-                case '\r':
-                    result += "\\r";
-                    break;
-                case '\n':
-                    result += "\\n";
-                    if (i < view.byteLength - 1) {
-                        result += "\"\r\n    \"";
-                    }
-                    j = 0;
-                    break;
-                case '\t':
-                    result += "\\t";
-                    break;
-                case '"':
-                    result += "\\\"";
-                    break;
-                case '\\':
-                    result += "\\\\";
-                    break;
-                default:
-                    result += ch;
-                    break;
+    if(data) {
+        const view = new DataView(data);
+        let j = startSpacing;
+        for (var i = 0; i < view.byteLength; i++) {
+            if (i > 0 && 0 === (j % 80) && i < view.byteLength - 1) {
+                result += "\"\r\n    \"";
             }
+            var charcode = view.getUint8(i);
+            if (charcode < 0x80) {
+                const ch = String.fromCharCode(charcode);
+                switch (ch) {
+                    case '\r':
+                        result += "\\r";
+                        break;
+                    case '\n':
+                        result += "\\n";
+                        if (i < view.byteLength - 1) {
+                            result += "\"\r\n    \"";
+                        }
+                        j = 0;
+                        break;
+                    case '\t':
+                        result += "\\t";
+                        break;
+                    case '"':
+                        result += "\\\"";
+                        break;
+                    case '\\':
+                        result += "\\\\";
+                        break;
+                    default:
+                        result += ch;
+                        break;
+                }
+            }
+            else {
+                result += `\\x${toHex(charcode)}`;
+            }
+            ++j;
         }
-        else {
-            result += `\\x${toHex(charcode)}`;
-        }
-        ++j;
+    } else {
+        result += "...";
     }
     return result + "\"";
 }
 export const generateBinary = (data) => {
     let result = "";
-    const view = new DataView(data);
-    for (let i = 0; i < view.byteLength; ++i) {
-        if (0 === (i % (30))) {
-            if (i < view.byteLength - 1) {
-                result += "\r\n    ";
-            } else {
-                result += "\r\n";
+    if(data) {
+        const view = new DataView(data);
+        for (let i = 0; i < view.byteLength; ++i) {
+            if (0 === (i % (30))) {
+                if (i < view.byteLength - 1) {
+                    result += "\r\n    ";
+                } else {
+                    result += "\r\n";
+                }
             }
+            let append = ("0x" + toHex(view.getUint8(i)));
+            if (i < view.byteLength - 1) {
+                append += ", ";
+            }
+            result += append;
         }
-        let append = ("0x" + toHex(view.getUint8(i)));
-        if (i < view.byteLength - 1) {
-            append += ", ";
-        }
-        result += append;
-
+    } else {
+        result = "...";
     }
     return result;
 }
