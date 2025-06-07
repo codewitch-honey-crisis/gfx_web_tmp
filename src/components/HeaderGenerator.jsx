@@ -109,7 +109,6 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
     let isPng = false;
     let isSvg = false;
     let isTvg = false;
-    if (isGfx) {
         if (fileType === undefined || fileType === "" && fileName.toLowerCase().endsWith(".fon")) {
             isFon = true;
             isSpecialized = isFon;
@@ -130,6 +129,7 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
             isTtf = true;
             isSpecialized = true;
         }
+    if (isGfx) {
         if (isFon) {
             result += "#include \"gfx_win_font.hpp\"\r\n\r\n";
             result += `extern gfx::win_font ${identifier};\r\n`
@@ -168,9 +168,15 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
             } else {
                 result += `#define ${identifier.toUpperCase()}_LENGTH (${fileInfo.file.size})\r\n`;
             }
+            if((isSvg || isTvg || isPng || isJpg) && imgSize) {
+                result+=`#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
+            }
             result += "#ifdef __cplusplus\r\nextern \"C\"\r\n#else\r\nextern\r\n#endif\r\n";
             result += `const char* ${identifier};\r\n`;
         } else {
+            if((isSvg || isTvg || isPng || isJpg) && imgSize) {
+                result+=`#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
+            }
             result += `const uint8_t ${identifier}[];\r\n`;
         }
     }
@@ -435,7 +441,6 @@ const HeaderGenerator = () => {
             reader.readAsArrayBuffer(inputFile.files[0]);
             reader.onload = async function (evt) {
                 imageDimensions = await readImageDimensions(evt.target.result);
-                console.log(imageDimensions);
                 setImageDim(imageDimensions);
             }
         }
