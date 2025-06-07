@@ -17,6 +17,20 @@ const isSupportedImage = (fileInfo) => {
          return true;
     }
 }
+const jpgScaleDim = (dim, scale) => {
+    let factor = 1;
+    switch(scale) {
+        case "scale_1_2":
+            factor = .5; break;
+        case "scale_1_4":
+            factor = .25; break;
+        case "scale_1_8":
+            factor = .125; break;
+        default: // case "scale_1_1": 
+            return dim;
+    }
+    return {width: Math.ceil(dim.width*factor),height: Math.ceil(dim.height*factor)};
+}
 const tvgAdvCoord = (range) => {   
     switch(range) {
         case 0://"default"
@@ -139,7 +153,8 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
         } else if (isJpg) {
             result += "#include \"gfx_jpg_image.hpp\"\r\n\r\n";
             if(imgSize) {
-                result+=`#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
+                const dim = jpgScaleDim(imgSize,imageScale);
+                result+=`#define ${identifier.toUpperCase()}_DIMENSIONS {${dim.width}, ${dim.height}}\r\n\r\n`
             }
             result += `extern gfx::jpg_image ${identifier};\r\n`
         } else if (isPng) {
@@ -525,7 +540,7 @@ const HeaderGenerator = () => {
                     </section>
                 )}
 
-                {fileInfo && (
+                {fileInfo && ident && ident.length>0 && (
                     <>
                         <button onClick={generateContentFile}
                             className="submit"
@@ -538,7 +553,7 @@ const HeaderGenerator = () => {
                 )}
             </div><br />
             {fileInfo && (<><h4>Preview</h4></>)}
-            {fileInfo && (<SyntaxHighlighter style={a11yDark} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
+            {fileInfo && ident && ident.length>0 && (<SyntaxHighlighter style={a11yDark} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
         </>
     );
 };
