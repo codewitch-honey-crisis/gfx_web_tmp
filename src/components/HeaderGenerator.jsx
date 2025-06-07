@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { generateStringLiteral, generateByteArrayLiteral, toIdentifier } from './CGen';
+import { tvgReadDimensions } from './TinyVG';
 import './HeaderGenerator.css';
 
 const isText = (type) => {
@@ -31,62 +32,7 @@ const jpgScaleDim = (dim, scale) => {
     }
     return {width: Math.ceil(dim.width*factor),height: Math.ceil(dim.height*factor)};
 }
-const tvgAdvCoord = (range) => {   
-    switch(range) {
-        case 0://"default"
-            return 2;        
-        case 1://"reduced":
-            return 1;
-        case 2://"extended"
-            return 4;
-    }
-}
-const tvgMapZeroToMax = (range,value) => {
-    if(0==value) {
-        switch(range) {
-            case 0: //"default"
-                return 0xFFFF;
-            case 1: //"reduced"
-                return 0xFF;
-            case 2: //"extended"
-                return 0xFFFFFFFF;
-        }
-        return undefined;
-    }
-    return value;
-}
-const tvgReadCoord = (range,startIndex,data) => {   
-    const view = new DataView(data);
-    switch(range) {
-        case 0: //"default"
-            return view.getUint16(startIndex,true);
-        
-        case 1: //"reduced"
-            return view.getUint8(startIndex);
-        
-        case 2: //"extended"
-            return view.getUint32(startIndex,true);    
-    }
-    return undefined;
-}
-const tvgReadDimensions = (data) => {
-    const view = new DataView(data);
-    if(view.byteLength>5) {
-        // check for TVG v 1.0 header
-        if(view.getUint8(0)==0x72 && view.getUint8(1)==0x56 && view.getUint8(2)==1) {
-            const flags = view.getUint8(3);
-            const range = (flags>>>6)&0x03;
-            const w = tvgReadCoord(range,4,data);
-            const h = tvgReadCoord(range,4+tvgAdvCoord(range),data);
-            const dim = {
-                width: tvgMapZeroToMax(range,w),
-                height:tvgMapZeroToMax(range,h)
-            };
-            return dim;
-        }
-    }
-    return undefined;
-}
+
 const isTrueType = (name) => {
     const n = name.toLowerCase();
     return n.endsWith(".ttf") || n.endsWith(".otf");
@@ -112,9 +58,9 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
     result += `#ifndef ${guard}\r\n`;
     result += `#define ${guard}\r\n`;
     const istext = isText(fileType);
-    if (!istext) {
-        result += "#include <stdint.h>\r\n";
-    }
+    
+    result += "#include <stdint.h>\r\n";
+    
     var imgSize;
     if(imageDim && imageDim.width && imageDim.height && imageDim.width>0 && imageDim.height>0) {
         imgSize = imageDim;
