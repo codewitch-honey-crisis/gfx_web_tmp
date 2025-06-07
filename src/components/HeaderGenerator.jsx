@@ -435,7 +435,11 @@ const HeaderGenerator = () => {
         const fi = { file: e.dataTransfer.files[0], type: e.dataTransfer.files[0].type };
         setFileInfo(fi);
         setIdent(toIdentifier(e.dataTransfer.files[0].name));
-        
+
+        setImageScale(undefined); // set this back so it doesn't accidentally get set to something other than the default
+        setFontSize(undefined);
+        setFontUnits(undefined);
+        setFontSet(undefined);
         if(isSupportedImage(fi)) {
             let reader = new FileReader();
             reader.readAsArrayBuffer(inputFile.files[0]);
