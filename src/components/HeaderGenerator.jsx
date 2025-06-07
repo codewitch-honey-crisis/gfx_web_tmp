@@ -204,36 +204,36 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
             result += generateByteArrayLiteral(identifier + "_data", data, true) + "\r\n\r\n";
         }
         if (isSpecialized) {
-            result += `static gfx::const_buffer_stream ${identifier}_stream(${identifier}_data, sizeof(${identifier}_data));\r\n`;
+            result += `static gfx::const_buffer_stream ${identifier}_stream\r\n    (${identifier}_data, sizeof(${identifier}_data));\r\n`;
         }
         if (isFon) {
             if (fontSetIndex != 0) {
-                result += `gfx::win_font ${identifier}(${identifier}_stream, ${fontSetIndex});\r\n`;
+                result += `gfx::win_font ${identifier}\r\n    (${identifier}_stream, ${fontSetIndex});\r\n`;
             } else {
-                result += `gfx::win_font ${identifier}(${identifier}_stream);\r\n`;
+                result += `gfx::win_font ${identifier}\r\n    (${identifier}_stream);\r\n`;
             }
         } else if (isVlw) {
-            result += `gfx::vlw_font ${identifier}(${identifier}_stream);\r\n`;
+            result += `gfx::vlw_font ${identifier}\r\n    (${identifier}_stream);\r\n`;
         } else if (isJpg) {
             if (imageScale != "scale_1_1") {
-                result += `gfx::jpg_image ${identifier}(${identifier}_stream, jpg_scale::${imageScale});\r\n`;
+                result += `gfx::jpg_image ${identifier}\r\n    (${identifier}_stream, jpg_scale::${imageScale});\r\n`;
             } else {
-                result += `gfx::jpg_image ${identifier}(${identifier}_stream);\r\n`;
+                result += `gfx::jpg_image ${identifier}\r\n    (${identifier}_stream);\r\n`;
             }
         } else if (isPng) {
-            result += `gfx::png_image ${identifier}(${identifier}_stream);\r\n`;
+            result += `gfx::png_image ${identifier}\r\n    (${identifier}_stream);\r\n`;
         } else if (isTtf) {
-            result += `gfx::ttf_font ${identifier}(${identifier}_stream, ${size}, gfx::font_size_units::${units})\r\n`;
+            result += `gfx::ttf_font ${identifier}\r\n    (${identifier}_stream, ${size}, gfx::font_size_units::${units})\r\n`;
         } else {
             if (istext) {
                 if (data) {
                     const view = new DataView(data);
-                    result += `gfx::const_buffer_stream ${identifier}((const uint8_t*)${identifier}_data, ${view.byteLength});\r\n`;
+                    result += `gfx::const_buffer_stream ${identifier}\r\n    ((const uint8_t*)${identifier}_data, ${view.byteLength});\r\n`;
                 } else {
-                    result += `gfx::const_buffer_stream ${identifier}((const uint8_t*)${identifier}_data, ${fileInfo.file.size});\r\n`;
+                    result += `gfx::const_buffer_stream ${identifier}\r\n    ((const uint8_t*)${identifier}_data, ${fileInfo.file.size});\r\n`;
                 }
             } else {
-                result += `gfx::const_buffer_stream ${identifier}(${identifier}_data, sizeof(${identifier}_data));\r\n`;
+                result += `gfx::const_buffer_stream ${identifier}\r\n    (${identifier}_data, sizeof(${identifier}_data));\r\n`;
             }
         }
     } else {
