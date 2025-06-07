@@ -9,6 +9,10 @@
 .fileSize {
     color:cadetblue;
 }
+.fileDim {
+    color:coral;
+}
+
 .genType {
     color:chartreuse;
 }
