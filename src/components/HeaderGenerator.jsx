@@ -58,8 +58,9 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
     result += `#ifndef ${guard}\r\n`;
     result += `#define ${guard}\r\n`;
     const istext = isText(fileType);
-    
-    result += "#include <stdint.h>\r\n";
+    if(isGfx || !istext) {
+        result += "#include <stdint.h>\r\n";
+    }
     
     var imgSize;
     if(imageDim && imageDim.width && imageDim.height && imageDim.width>0 && imageDim.height>0) {
@@ -96,26 +97,26 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
     if (isGfx) {
         if (isFon) {
             result += "#include \"gfx_win_font.hpp\"\r\n\r\n";
-            result += `extern gfx::win_font ${identifier};\r\n`
+            result += `extern gfx::win_font ${identifier};\r\n`;
         } else if (isVlw) {
             result += "#include \"gfx_vlw_font.hpp\"\r\n\r\n";
-            result += `extern gfx::vlw_font ${identifier};\r\n`
+            result += `extern gfx::vlw_font ${identifier};\r\n`;
         } else if (isJpg) {
             result += "#include \"gfx_jpg_image.hpp\"\r\n\r\n";
             if(imgSize) {
                 const dim = jpgScaleDim(imgSize,imageScale);
                 result+=`#define ${identifier.toUpperCase()}_DIMENSIONS {${dim.width}, ${dim.height}}\r\n\r\n`
             }
-            result += `extern gfx::jpg_image ${identifier};\r\n`
+            result += `extern gfx::jpg_image ${identifier};\r\n`;
         } else if (isPng) {
             result += "#include \"gfx_png_image.hpp\"\r\n\r\n";
             if(imgSize) {
                 result+=`#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
             }
-            result += `extern gfx::png_image ${identifier};\r\n`
+            result += `extern gfx::png_image ${identifier};\r\n`;
         } else if (isTtf) {
             result += "#include \"gfx_ttf_font.hpp\"\r\n\r\n";
-            result += `extern gfx::ttf_font ${identifier};\r\n`
+            result += `extern gfx::ttf_font ${identifier};\r\n`;
         } else {
             result += "#include \"gfx_core.hpp\"\r\n\r\n";
             if(isSvg || isTvg) {

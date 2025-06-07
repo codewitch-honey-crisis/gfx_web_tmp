@@ -97,8 +97,8 @@ const tvgReadUnit = (ctx) => {
     return tvgDownscaleCoord(ctx, val);
 }
 const tvgReadPoint = (ctx) => {
-    const x = tvgReadUnit(ctx, &f32);
-    const y = tvgReadUnit(ctx, &f32);
+    const x = tvgReadUnit(ctx);
+    const y = tvgReadUnit(ctx);
     return {x: x, y: y};
 }
 const tvgReadColor = (ctx)=> {   
