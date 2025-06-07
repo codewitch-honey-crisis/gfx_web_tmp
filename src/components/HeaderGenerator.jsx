@@ -7,6 +7,72 @@ import './HeaderGenerator.css';
 const isText = (type) => {
     return (type.endsWith("/json") || type.endsWith("/xml") || type.endsWith("+xml") || type.startsWith("text/"));
 }
+const isSupportedImage = (fileInfo) => {
+    const fileName = fileInfo.file.name.toLowerCase();
+    const fileType = fileInfo.file.type;
+    if(fileType=="image/jpg" || fileType=="image/png" || fileType=="image/svg+xml") {
+        return true;
+    }
+    if(fileName.endsWith(".jpg") || fileName.endsWith(".png") || fileName.endsWith(".svg") || fileName.endsWith(".tvg")) {
+         return true;
+    }
+}
+const tvgAdvCoord = (range) => {   
+    switch(range) {
+        case 0://"default"
+            return 2;        
+        case 1://"reduced":
+            return 1;
+        case 2://"extended"
+            return 4;
+    }
+}
+const tvgMapZeroToMax = (range,value) => {
+    if(0==value) {
+        switch(range) {
+            case 0: //"default"
+                return 0xFFFF;
+            case 1: //"reduced"
+                return 0xFF;
+            case 2: //"extended"
+                return 0xFFFFFFFF;
+        }
+        return undefined;
+    }
+    return value;
+}
+const tvgReadCoord = (range,startIndex,data) => {   
+    const view = new DataView(data);
+    switch(range) {
+        case 0: //"default"
+            return view.getUint16(startIndex,true);
+        
+        case 1: //"reduced"
+            return view.getUint8(startIndex);
+        
+        case 2: //"extended"
+            return view.getUint32(startIndex,true);    
+    }
+    return undefined;
+}
+const tvgReadDimensions = (data) => {
+    const view = new DataView(data);
+    if(view.byteLength>5) {
+        // check for TVG v 1.0 header
+        if(view.getUint8(0)==0x72 && view.getUint8(1)==0x56 && view.getUint8(2)==1) {
+            const flags = view.getUint8(3);
+            const range = (flags>>>6)&0x03;
+            const w = tvgReadCoord(range,4,data);
+            const h = tvgReadCoord(range,4+tvgAdvCoord(range),data);
+            const dim = {
+                width: tvgMapZeroToMax(range,w),
+                height:tvgMapZeroToMax(range,h)
+            };
+            return dim;
+        }
+    }
+    return undefined;
+}
 const isTrueType = (name) => {
     const n = name.toLowerCase();
     return n.endsWith(".ttf") || n.endsWith(".otf");
@@ -42,6 +108,7 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
     let isJpg = false;
     let isPng = false;
     let isSvg = false;
+    let isTvg = false;
     if (isGfx) {
         if (fileType === undefined || fileType === "" && fileName.toLowerCase().endsWith(".fon")) {
             isFon = true;
@@ -51,6 +118,8 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
             isSpecialized = true;
         } else if (fileType === "image/svg+xml") {
             isSvg = true;
+        } else if(fileName.toLowerCase().endsWith(".tvg")) {
+            isTvg = true;
         } else if (fileType === "image/png") {
             isPng = true;
             isSpecialized = true;
@@ -84,7 +153,7 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
             result += `extern gfx::ttf_font ${identifier};\r\n`
         } else {
             result += "#include \"gfx_core.hpp\"\r\n\r\n";
-            if(isSvg) {
+            if(isSvg || isTvg) {
                 if(imgSize) {
                     result+=`#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
                 }
@@ -235,46 +304,48 @@ const HeaderGenerator = () => {
             gencache = undefined;
         }
     }
-    const setImageDimensions = async (data) => {
-        const view = new DataView(data);
-        setImageDim(undefined);
-        return await new Promise((resolve, reject) => {
-            const imgsrc = URL.createObjectURL(new Blob([data]));
-            const img = new Image();
-            img.onload = () => {
-                const dim = {
-                    width: img.naturalWidth,
-                    height: img.naturalHeight
-                };
-                setImageDim(dim)
-                resolve(dim);
-            };
 
-            img.onerror = () => {
-                var decoder = new TextDecoder('utf-8');
-                const svgstr = decoder.decode(data);
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(svgstr, 'image/svg+xml');
-                const svg = doc.documentElement;
-                
-                // Get bounding box of all content
-                document.body.appendChild(svg);
-                const bbox = svg.getBBox();
-                document.body.removeChild(svg);
-                
-                const dim = {
-                    width: Math.ceil(bbox.width + bbox.x),
-                    height: Math.ceil(bbox.height + bbox.y)
-                };
-                if(dim && dim.width>0) {
-                    setImageDim(dim);
+    const readImageDimensions = async (data) => {
+        return new Promise((resolve, reject) => {
+            let dim = tvgReadDimensions(data);
+            if(dim) {
+                resolve(dim);        
+            } 
+            else {
+                const imgsrc = URL.createObjectURL(new Blob([data]));
+                const img = new Image();
+                img.onload = () => {
+                    dim = {
+                        width: img.naturalWidth,
+                        height: img.naturalHeight
+                    };
                     resolve(dim);
-                } else {
-                    setImageDim(undefined);
-                    reject();
+                };
+
+                img.onerror = () => {
+                    // try SVG on fallback
+                    var decoder = new TextDecoder('utf-8');
+                    const svgstr = decoder.decode(data);
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(svgstr, 'image/svg+xml');
+                    const svg = doc.documentElement;
+                    
+                    // Get bounding box of all content
+                    document.body.appendChild(svg);
+                    const bbox = svg.getBBox();
+                    document.body.removeChild(svg);
+                    dim = {
+                        width: Math.ceil(bbox.width + bbox.x),
+                        height: Math.ceil(bbox.height + bbox.y)
+                    };
+                    if(dim && dim.width>0) {
+                        resolve(dim);
+                    } else {
+                        reject();
+                    }
                 }
+                img.src = imgsrc;
             }
-            img.src = imgsrc;
         });
     }
     const getCreatedTypeName = () => {
@@ -355,14 +426,16 @@ const HeaderGenerator = () => {
         e.preventDefault();
         const inputFile = document.getElementById("file");
         inputFile.files = e.dataTransfer.files;
-        setFileInfo({ file: e.dataTransfer.files[0], type: e.dataTransfer.files[0].type });
+        const fi = { file: e.dataTransfer.files[0], type: e.dataTransfer.files[0].type };
+        setFileInfo(fi);
         setIdent(toIdentifier(e.dataTransfer.files[0].name));
-        if(e.dataTransfer.files[0].type.startsWith("image/")) {
+        
+        if(isSupportedImage(fi)) {
             let reader = new FileReader();
             reader.readAsArrayBuffer(inputFile.files[0]);
-            reader.onload = function (evt) {
-                console.log("getting image dimensions");
-                imageDimensions = setImageDimensions(evt.target.result)
+            reader.onload = async function (evt) {
+                imageDimensions = await readImageDimensions(evt.target.result);
+                console.log(imageDimensions);
                 setImageDim(imageDimensions);
             }
         }
@@ -412,7 +485,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
-                            {fileInfo && fileInfo.file.name.toLowerCase().endsWith(".jpg") && genType.startsWith("G") && (
+                            {fileInfo && fileInfo.file.type=="image/jpeg" && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Scale: </label></td>
                                     <td>
@@ -434,7 +507,7 @@ const HeaderGenerator = () => {
                         <ul>
                             {fileInfo.file.type && (
                                 <li>MIME: <span className="fileType">{fileInfo.file.type}</span></li>)}
-                            {fileInfo.file.type.startsWith("image/") && imageDim.width && (
+                            {isSupportedImage(fileInfo) && imageDim && (
                                 <li>Dimensions: <span className="fileDim">{imageDim.width}x{imageDim.height}</span></li>)}
                             <li>Size: <span className="fileSize">{fileInfo.file.size} bytes</span></li>
                             <li>Type: <span className="genType">{getCreatedTypeName()}</span></li>
