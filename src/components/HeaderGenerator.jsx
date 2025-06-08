@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { generateStringLiteral, generateByteArrayLiteral, toIdentifier } from './CGen';
-import { tvgReadDimensions } from './TinyVG';
+import { tvgDimensions, tvgRender } from './TinyVG';
 import './HeaderGenerator.css';
 
 const isText = (type) => {
@@ -280,7 +280,7 @@ const HeaderGenerator = () => {
 
     const readImageDimensions = async (data) => {
         return new Promise((resolve, reject) => {
-            let dim = tvgReadDimensions(data);
+            let dim = tvgDimensions(data);
             if(dim) {
                 resolve(dim);        
             } 
@@ -413,6 +413,9 @@ const HeaderGenerator = () => {
             reader.onload = async function (evt) {
                 imageDimensions = await readImageDimensions(evt.target.result);
                 setImageDim(imageDimensions);
+                if(fi.file.name.toLowerCase().endsWith(".tvg")) {
+                    tvgRender("tinyvg",evt.target.result);
+                }
             }
         }
         
@@ -444,7 +447,7 @@ const HeaderGenerator = () => {
                                 <tr>
                                     <td><label>Set Index: </label></td>
                                     <td>
-                                        <input type="text" value={fontSet} onChange={handleFontSetValueChange} onKeyUp={handleFontSetValueChange} />
+                                        <input type="text" value={fontSet} onChange={handleFontSetValueChange} />
                                     </td>
                                 </tr>
                             )}
@@ -452,7 +455,7 @@ const HeaderGenerator = () => {
                                 <tr>
                                     <td><label>Size: </label></td>
                                     <td>
-                                        <input type="text" value={fontSize} onChange={handleFontSizeValueChange} onKeyUp={handleFontSizeValueChange} />
+                                        <input type="text" value={fontSize} onChange={handleFontSizeValueChange} />
                                         <select onChange={handleFontSizeUnitChange} value={fontUnits}>
                                             <option>none</option>
                                             <option value="em">em</option>
@@ -506,6 +509,7 @@ const HeaderGenerator = () => {
             </div><br />
             {fileInfo && (<><h4>Preview</h4></>)}
             {fileInfo && ident && ident.length>0 && (<SyntaxHighlighter style={a11yDark} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
+            {fileInfo && fileInfo.file.name.toLowerCase().endsWith(".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
         </>
     );
 };
