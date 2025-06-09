@@ -6,6 +6,32 @@
 // value, because it's passed to fonMakeGlyph, which takes it as the first argument, followed by a
 // a charCode, and a color in 32-bit ARGB hex format. It produces a glyph with metrics, and a data
 // field array buffer that can be used to construct an ImageData to pass to a canvas.
+
+/* EXAMPLE
+const drawFonString = (cvsctx, fon, str, x, y, col) => {
+    let xo = 0;
+    let yo = 0;
+    for (let i = 0; i < str.length; ++i) {
+        if (str.charCodeAt(i) === '\r'.charCodeAt(0)) {
+            xo = 0;
+        } else if (str.charCodeAt(i) === '\n'.charCodeAt(0)) {
+            yo += fon.lineHeight;
+            xo = 0;
+        } else {
+            const ch = str.charCodeAt(i);
+            const glyph = fonMakeGlyph(fon, ch, col);
+            if (glyph && glyph.width) {
+                const data = new Uint8ClampedArray(glyph.data);
+                const image = new ImageData(data, glyph.width, glyph.height);
+                cvsctx.putImageData(image, xo + x, yo + y);
+                xo += glyph.width;
+            } else {
+                xo += fon.width;
+            }
+        }
+
+    }
+}*/
 const fonReadUint8 = (ctx)=> { const result = ctx.view.getUint8(ctx.dataCursor); ctx.dataCursor+=1; return result; }
 const fonReadUint16 = (ctx) => { const result = ctx.view.getUint16(ctx.dataCursor,true); ctx.dataCursor+=2; return result; }
 const fonReadUint32 = (ctx) => { const result = ctx.view.getUint32(ctx.dataCursor,true); ctx.dataCursor+=4; return result; }
