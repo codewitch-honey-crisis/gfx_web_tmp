@@ -258,7 +258,7 @@ const HeaderGenerator = () => {
         gencache = undefined;
         setGenContent(undefined);
         previewFile();
-        
+
     }
     const handleImageScaleChange = (e) => {
         let s = e.target.value;
@@ -280,7 +280,7 @@ const HeaderGenerator = () => {
         gencache = undefined;
         setGenContent(undefined);
         previewFile();
-        
+
     }
     const handleFontSizeUnitChange = (e) => {
         let u = e.target.value;
@@ -301,7 +301,7 @@ const HeaderGenerator = () => {
         gencache = undefined;
         setGenContent(undefined);
         previewFile();
-        
+
     }
     const handleTypeChange = (e) => {
         if (genType != e.target.value) {
@@ -311,9 +311,9 @@ const HeaderGenerator = () => {
         }
     }
 
-    const readImageDimensions = async (data, isSvg=false) => {
+    const readImageDimensions = async (data, isSvg = false) => {
         return new Promise((resolve, reject) => {
-            if(!isSvg) {
+            if (!isSvg) {
                 let dim = tvgDimensions(data);
                 if (dim) {
                     resolve(dim);
@@ -351,7 +351,7 @@ const HeaderGenerator = () => {
                 }
             }
             img.src = imgsrc;
-        
+
         });
     }
     const getCreatedTypeName = () => {
@@ -444,10 +444,14 @@ const HeaderGenerator = () => {
             } else {
                 const ch = str.charCodeAt(i);
                 const glyph = fonMakeGlyph(fon, ch, col);
-                const data = new Uint8ClampedArray(glyph.data);
-                const image = new ImageData(data, glyph.width, glyph.height);
-                cvsctx.putImageData(image, xo + x, yo + y);
-                xo += glyph.width;
+                if (glyph && glyph.width) {
+                    const data = new Uint8ClampedArray(glyph.data);
+                    const image = new ImageData(data, glyph.width, glyph.height);
+                    cvsctx.putImageData(image, xo + x, yo + y);
+                    xo += glyph.width;
+                } else {
+                    xo += fon.width;
+                }
             }
 
         }
@@ -479,15 +483,15 @@ const HeaderGenerator = () => {
                 xo = 0;
             } else {
                 const glyph = vlwMakeGlyph(vlw, cp, col);
-                if(glyph && glyph.width) {
+                if (glyph && glyph.width) {
                     const data = new Uint8ClampedArray(glyph.data);
                     const image = new ImageData(data, glyph.width, glyph.height);
                     cvsctx.putImageData(image, xo + x + glyph.offset.x, yo + y + glyph.offset.y);
                     xo += glyph.advWidth;
                 } else {
-                    xo+=vlw.spaceWidth;
+                    xo += vlw.spaceWidth;
                 }
-                
+
             }
         }
     }
@@ -496,27 +500,27 @@ const HeaderGenerator = () => {
             console.log("No gen info");
             return;
         }
-        if(!filecache) {
+        if (!filecache) {
             filecache = fileCache;
         }
-        if(!finfo) {
+        if (!finfo) {
             finfo = fileInfo;
         }
-        if(!fsize) {
+        if (!fsize) {
             fsize = fontSize;
         }
-        if(!funits) {
+        if (!funits) {
             funits = fontUnits;
         }
-        if(!iscale) {
+        if (!iscale) {
             iscale = imageScale;
         }
-        if(!fset) {
+        if (!fset) {
             fset = fontSet;
         }
-        
+
         if (isSupportedImage(finfo)) {
-            readImageDimensions(filecache,finfo.file.name.toLowerCase().endsWith(".svg")).then((value) => {
+            readImageDimensions(filecache, finfo.file.name.toLowerCase().endsWith(".svg")).then((value) => {
                 imageDimensions = value;
                 setImageDim(imageDimensions);
             });
@@ -581,11 +585,11 @@ const HeaderGenerator = () => {
                 console.log("Couldn't find font container");
             } else {
                 const blb = new Blob([filecache]);
-                if(!idnt) {
+                if (!idnt) {
                     idnt = ident;
                 }
-                if(!idnt) {
-                    idnt=toIdentifier(finfo.file.name);
+                if (!idnt) {
+                    idnt = toIdentifier(finfo.file.name);
                 }
                 const fnt = new FontFace(idnt, `url(${URL.createObjectURL(blb)})`);
                 fnt.load().then(() => {
@@ -598,8 +602,8 @@ const HeaderGenerator = () => {
                     if (!funit) {
                         funit = "em";
                     }
-                    spn.innerHTML=`<pre style="font: ${fntsize}${funit} ${idnt}; color: #FF0FF0;">`+
-                        "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz".replace(/[\u00A0-\u9999<>\&]/g, i => '&#'+i.charCodeAt(0)+';')+
+                    spn.innerHTML = `<pre style="font: ${fntsize}${funit} ${idnt}; color: #FF0FF0;">` +
+                        "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz".replace(/[\u00A0-\u9999<>\&]/g, i => '&#' + i.charCodeAt(0) + ';') +
                         "</pre>";
                 });
             }
@@ -620,8 +624,8 @@ const HeaderGenerator = () => {
         setFontUnits(undefined);
         setFontSet(undefined);
         setGenContent(undefined);
-        if (isSupportedImage(fi) || 
-            (fi.file.name.toLowerCase().endsWith(".vlw")||fi.file.name.toLowerCase().endsWith(".fon"))||
+        if (isSupportedImage(fi) ||
+            (fi.file.name.toLowerCase().endsWith(".vlw") || fi.file.name.toLowerCase().endsWith(".fon")) ||
             isTrueType(fi.file.name)
         ) {
             let reader = new FileReader();
@@ -728,7 +732,7 @@ const HeaderGenerator = () => {
             {fileInfo && !fileInfo.file.name.toLowerCase().endsWith(".tvg") && !fileInfo.file.name.toLowerCase().endsWith(".svg") && isSupportedImage(fileInfo) && (<img id="picture" onLoad={revokePicture()} />)}
             {fileInfo && fileInfo.file.name.toLowerCase().endsWith(".svg") && isSupportedImage(fileInfo) && (<div id="svgContainer" />)}
             {fileInfo && (fileInfo.file.name.toLowerCase().endsWith(".fon") || fileInfo.file.name.toLowerCase().endsWith(".vlw")) && (<canvas id="rasterFont" width={800} height={300} style={{ width: "%100", height: "100%" }} />)}
-            {fileInfo && isTrueType(fileInfo.file.name) && (<span id="vectorFont" style={{width:"800px", height: "300px"}} />)}
+            {fileInfo && isTrueType(fileInfo.file.name) && (<span id="vectorFont" style={{ width: "800px", height: "300px" }} />)}
         </>
     );
 };
