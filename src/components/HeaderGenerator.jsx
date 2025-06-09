@@ -234,6 +234,7 @@ const HeaderGenerator = () => {
     const [imageDim, setImageDim] = useState("");
     const [genType, setGenType] = useState("C");
     const [genContent, setGenContent] = useState(undefined)
+    const [fileCache, setFileCache] = useState(undefined)
     const handleFileChange = (e) => {
         setFileInfo({ file: e.target.files[0], type: e.target.files[0].type });
         setIdent(toIdentifier(e.target.files[0].name));
@@ -244,6 +245,7 @@ const HeaderGenerator = () => {
             idnt = e.target.value;
             setIdent(idnt);
             gencache = undefined;
+            setGenContent(undefined);
         }
     }
     const handleFontSetValueChange = (e) => {
@@ -253,8 +255,10 @@ const HeaderGenerator = () => {
         }
         fset = n;
         setFontSet(fset);
-        previewFile();
         gencache = undefined;
+        setGenContent(undefined);
+        previewFile();
+        
     }
     const handleImageScaleChange = (e) => {
         let s = e.target.value;
@@ -263,8 +267,8 @@ const HeaderGenerator = () => {
         }
         iscale = s;
         setImageScale(s);
-        previewFile();
         gencache = undefined;
+        setGenContent(undefined);
     }
     const handleFontSizeValueChange = (e) => {
         let n = Number.parseFloat(e.target.value);
@@ -273,14 +277,18 @@ const HeaderGenerator = () => {
         }
         fsize = n;
         setFontSize(n);
-        previewFile();
         gencache = undefined;
+        setGenContent(undefined);
+        previewFile();
+        
     }
     const handleFontSizeUnitChange = (e) => {
         let u = e.target.value;
         if (u === "none" || u === undefined || u === "") {
             setFontSize(0);
             setFontUnits(u);
+            gencache = undefined;
+            setGenContent(undefined);
             previewFile();
             return;
         }
@@ -290,13 +298,16 @@ const HeaderGenerator = () => {
         funits = u;
         fsize = 0;
         setFontUnits(u);
-        previewFile();
         gencache = undefined;
+        setGenContent(undefined);
+        previewFile();
+        
     }
     const handleTypeChange = (e) => {
         if (genType != e.target.value) {
             setGenType(e.target.value);
             gencache = undefined;
+            setGenContent(undefined);
         }
     }
 
@@ -476,12 +487,12 @@ const HeaderGenerator = () => {
         }
     }
     const previewFile = () => {
-        if ((!finfo && !fileInfo) || (!filecache && !genContent)) {
+        if ((!finfo && !fileInfo) || (!filecache && !fileCache)) {
             console.log("No gen info");
             return;
         }
         if(!filecache) {
-            filecache = genContent;
+            filecache = fileCache;
         }
         if(!finfo) {
             finfo = fileInfo;
@@ -498,6 +509,7 @@ const HeaderGenerator = () => {
         if(!fset) {
             fset = fontSet;
         }
+        
         if (isSupportedImage(finfo)) {
             readImageDimensions(filecache,finfo.file.name.toLowerCase().endsWith(".svg")).then((value) => {
                 imageDimensions = value;
@@ -610,6 +622,7 @@ const HeaderGenerator = () => {
             let reader = new FileReader();
             reader.onload = async function (evt) {
                 filecache = evt.target.result;
+                setFileCache(filecache);
                 finfo = fi;
                 setGenContent(filecache);
                 previewFile();
@@ -653,7 +666,7 @@ const HeaderGenerator = () => {
                                     <td><label>Size: </label></td>
                                     <td>
                                         <input type="text" onChange={handleFontSizeValueChange} />
-                                        <select onChange={handleFontSizeUnitChange} value={fontUnits}>
+                                        <select onChange={handleFontSizeUnitChange}>
                                             <option>none</option>
                                             <option value="em">em</option>
                                             <option value="px">px</option>
@@ -665,7 +678,7 @@ const HeaderGenerator = () => {
                                 <tr>
                                     <td><label>Scale: </label></td>
                                     <td>
-                                        <select onChange={handleImageScaleChange} value={imageScale}>
+                                        <select onChange={handleImageScaleChange}>
                                             <option value="scale_1_1">1:1</option>
                                             <option value="scale_1_2">1:2</option>
                                             <option value="scale_1_4">1:4</option>
