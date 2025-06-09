@@ -309,6 +309,7 @@ const HeaderGenerator = () => {
             setGenType(e.target.value);
             gencache = undefined;
             setGenContent(undefined);
+            previewFile();
         }
     }
 
