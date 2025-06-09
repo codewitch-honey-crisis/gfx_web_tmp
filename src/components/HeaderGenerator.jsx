@@ -10,9 +10,9 @@ import './HeaderGenerator.css';
 const isText = (type) => {
     return (type.endsWith("/json") || type.endsWith("/xml") || type.endsWith("+xml") || type.startsWith("text/"));
 }
-const isSupportedImage = (fileInfo) => {
-    const fileName = fileInfo.file.name.toLowerCase();
-    const fileType = fileInfo.file.type;
+const isSupportedImage = (fileinfo) => {
+    const fileName = fileinfo.file.name.toLowerCase();
+    const fileType = fileinfo.file.type;
     if (fileType == "image/jpg" || fileType == "image/png" || fileType == "image/svg+xml") {
         return true;
     }
@@ -290,47 +290,47 @@ const HeaderGenerator = () => {
         }
     }
 
-    const readImageDimensions = async (data) => {
+    const readImageDimensions = async (data, isSvg=false) => {
         return new Promise((resolve, reject) => {
-            let dim = tvgDimensions(data);
-            if (dim) {
-                resolve(dim);
-            }
-            else {
-                const imgsrc = URL.createObjectURL(new Blob([data]));
-                const img = new Image();
-                img.onload = () => {
-                    dim = {
-                        width: img.naturalWidth,
-                        height: img.naturalHeight
-                    };
+            if(!isSvg) {
+                let dim = tvgDimensions(data);
+                if (dim) {
                     resolve(dim);
-                };
-
-                img.onerror = () => {
-                    // try SVG on fallback
-                    var decoder = new TextDecoder('utf-8');
-                    const svgstr = decoder.decode(data);
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(svgstr, 'image/svg+xml');
-                    const svg = doc.documentElement;
-
-                    // Get bounding box of all content
-                    document.body.appendChild(svg);
-                    const bbox = svg.getBBox();
-                    document.body.removeChild(svg);
-                    dim = {
-                        width: Math.ceil(bbox.width + bbox.x),
-                        height: Math.ceil(bbox.height + bbox.y)
-                    };
-                    if (dim && dim.width > 0) {
-                        resolve(dim);
-                    } else {
-                        reject();
-                    }
                 }
-                img.src = imgsrc;
+                else {
+                    const imgsrc = URL.createObjectURL(new Blob([data]));
+                    const img = new Image();
+                    img.onload = () => {
+                        dim = {
+                            width: img.naturalWidth,
+                            height: img.naturalHeight
+                        };
+                        resolve(dim);
+                    };
+                }
+            } else {
+                var decoder = new TextDecoder('utf-8');
+                const svgstr = decoder.decode(data);
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(svgstr, 'image/svg+xml');
+                const svg = doc.documentElement;
+
+                // Get bounding box of all content
+                document.body.appendChild(svg);
+                const bbox = svg.getBBox();
+                document.body.removeChild(svg);
+                const dim = {
+                    width: Math.ceil(bbox.width + bbox.x),
+                    height: Math.ceil(bbox.height + bbox.y)
+                };
+                if (dim && dim.width > 0) {
+                    resolve(dim);
+                } else {
+                    reject();
+                }
             }
+            img.src = imgsrc;
+        
         });
     }
     const getCreatedTypeName = () => {
@@ -470,7 +470,6 @@ const HeaderGenerator = () => {
             console.log("No gen info");
             return;
         }
-        console.log("preview");
         if(!filecache) {
             filecache = genContent;
         }
@@ -478,7 +477,7 @@ const HeaderGenerator = () => {
             finfo = fileInfo;
         }
         if (isSupportedImage(finfo)) {
-            readImageDimensions(filecache).then((value) => {
+            readImageDimensions(filecache,finfo.file.name.toLowerCase().endsWith(".svg")).then((value) => {
                 imageDimensions = value;
                 setImageDim(imageDimensions);
             });
@@ -491,7 +490,7 @@ const HeaderGenerator = () => {
                 } else {
                     const decoder = new TextDecoder();
                     const str = decoder.decode(filecache);
-                    pic.outerHTML = str;
+                    pic.innerHTML = str;
                 }
             } else {
                 const pic = document.getElementById("picture");
@@ -594,6 +593,7 @@ const HeaderGenerator = () => {
             let reader = new FileReader();
             reader.onload = async function (evt) {
                 filecache = evt.target.result;
+                finfo = fi;
                 setGenContent(filecache);
                 previewFile();
             };
@@ -623,7 +623,7 @@ const HeaderGenerator = () => {
                             <tr>
                                 <td><label>Identifier: </label></td><td><input type="text" id="identifier" value={ident} onChange={handleIdentChange} /></td>
                             </tr>
-                            {fileInfo && fileInfo.file.name.toLowerCase().endsWith(".fon") && genType.startsWith("G") && (
+                            {finfo && finfo.file.name.toLowerCase().endsWith(".fon") && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Set Index: </label></td>
                                     <td>
@@ -631,7 +631,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
-                            {fileInfo && isTrueType(fileInfo.file.name) && genType.startsWith("G") && (
+                            {finfo && isTrueType(finfo.file.name) && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Size: </label></td>
                                     <td>
@@ -644,7 +644,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
-                            {fileInfo && fileInfo.file.type == "image/jpeg" && genType.startsWith("G") && (
+                            {finfo && finfo.file.type == "image/jpeg" && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Scale: </label></td>
                                     <td>
@@ -660,22 +660,22 @@ const HeaderGenerator = () => {
                         </tbody>
                     </table>
                 </div>
-                {fileInfo && (
+                {finfo && (
                     <section>
                         File details:
                         <ul>
-                            {fileInfo.file.type && (
-                                <li>MIME: <span className="fileType">{fileInfo.file.type}</span></li>)}
-                            {isSupportedImage(fileInfo) && imageDim && (
+                            {finfo.file.type && (
+                                <li>MIME: <span className="fileType">{finfo.file.type}</span></li>)}
+                            {isSupportedImage(finfo) && imageDim && (
                                 <li>Dimensions: <span className="fileDim">{imageDim.width}x{imageDim.height}</span></li>)}
-                            <li>Size: <span className="fileSize">{fileInfo.file.size} bytes</span></li>
+                            <li>Size: <span className="fileSize">{finfo.file.size} bytes</span></li>
                             <li>Type: <span className="genType">{getCreatedTypeName()}</span></li>
                         </ul>
 
                     </section>
                 )}
 
-                {fileInfo && ident && ident.length > 0 && (
+                {finfo && ident && ident.length > 0 && (
                     <>
                         <button onClick={generateContentFile}
                             className="submit"
