@@ -218,6 +218,7 @@ const HeaderGenerator = () => {
     var imageDimensions;
     var fontLineHeight;
     var filecache;
+    var idnt;
     var finfo;
     var fsize;
     var fset;
@@ -240,7 +241,8 @@ const HeaderGenerator = () => {
     };
     const handleIdentChange = (e) => {
         if (ident != e.target.value) {
-            setIdent(e.target.value);
+            idnt = e.target.value;
+            setIdent(idnt);
             gencache = undefined;
         }
     }
@@ -562,7 +564,13 @@ const HeaderGenerator = () => {
                 console.log("Couldn't find font container");
             } else {
                 const blb = new Blob([filecache]);
-                const fnt = new FontFace("vectorFace", `url(${URL.createObjectURL(blb)})`);
+                if(!idnt) {
+                    idnt = ident;
+                }
+                if(!idnt) {
+                    idnt=toIdentifier(finfo.file.name);
+                }
+                const fnt = new FontFace(idnt, `url(${URL.createObjectURL(blb)})`);
                 fnt.load().then(() => {
                     document.fonts.add(fnt);
                     let fntsize = fsize;
@@ -573,9 +581,7 @@ const HeaderGenerator = () => {
                     if (!funit) {
                         funit = "em";
                     }
-                    spn.style+=`; font: ${fntsize}${funit} vectorFace`;
-                
-                    spn.innerHTML="<pre>"+
+                    spn.innerHTML=`<pre style="font: ${fntsize}${funit} ${idnt}; color: #FF0FF0;">`+
                         "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz".replace(/[\u00A0-\u9999<>\&]/g, i => '&#'+i.charCodeAt(0)+';')+
                         "</pre>";
                 });
