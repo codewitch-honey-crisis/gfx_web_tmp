@@ -312,7 +312,6 @@ const HeaderGenerator = () => {
                     var decoder = new TextDecoder('utf-8');
                     const svgstr = decoder.decode(data);
                     const parser = new DOMParser();
-                    console.log(svgstr);
                     const doc = parser.parseFromString(svgstr, 'image/svg+xml');
                     const svg = doc.documentElement;
 
