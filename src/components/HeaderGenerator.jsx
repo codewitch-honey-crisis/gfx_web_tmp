@@ -479,10 +479,15 @@ const HeaderGenerator = () => {
                 xo = 0;
             } else {
                 const glyph = vlwMakeGlyph(vlw, cp, col);
-                const data = new Uint8ClampedArray(glyph.data);
-                const image = new ImageData(data, glyph.width, glyph.height);
-                cvsctx.putImageData(image, xo + x + glyph.offset.x, yo + y + glyph.offset.y);
-                xo += glyph.advWidth;
+                if(glyph && glyph.width) {
+                    const data = new Uint8ClampedArray(glyph.data);
+                    const image = new ImageData(data, glyph.width, glyph.height);
+                    cvsctx.putImageData(image, xo + x + glyph.offset.x, yo + y + glyph.offset.y);
+                    xo += glyph.advWidth;
+                } else {
+                    xo+=vlw.spaceWidth;
+                }
+                
             }
         }
     }

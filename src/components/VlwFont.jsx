@@ -60,11 +60,8 @@ const vlwSeekCodepoint = (vlw,codepoint) => {
 export const vlwMakeGlyph = (vlw,codepoint,color) => {
     if (((codepoint > 0x20) && (codepoint < 0xA0) && (codepoint != 0x7F)) || (codepoint > 0xFF)) {
         if(vlwSeekCodepoint(vlw,codepoint)<0) {
-            const height = vlw.lineHeight;
             const width = vlw.spaceWidth;
             const advWidth = vlw.spaceWidth;
-            const yOffset = 0;
-            const xOffset = 0;
             const pixelCount = width * vlw.lineHeight;
             const result = new ArrayBuffer(pixelCount*4);
             return { width: width, height: vlw.lineHeight, advWidth: advWidth, offset: {x: 0, y:0}, data: result };    
@@ -78,8 +75,6 @@ export const vlwMakeGlyph = (vlw,codepoint,color) => {
         const pixelCount = width * height;
         const result = new ArrayBuffer(pixelCount*4);
         const view = new DataView(result);
-        let index = yOffset*width;
-        
         let bmp_ptr = 24 + (vlw.glyphCount*28);
         let i = 0;
         vlw.dataCursor = 24;
@@ -103,6 +98,7 @@ export const vlwMakeGlyph = (vlw,codepoint,color) => {
             ++i;
         }
         if(i>=vlw.glyphCount) {
+            console.log("not found");
             throw "Vlw: Glyph not found";
         }
         vlw.dataCursor = bmp_offset;
@@ -123,11 +119,8 @@ export const vlwMakeGlyph = (vlw,codepoint,color) => {
         }
         return { width: width, height: height, xOffset: xOffset, advWidth: advWidth,offset: {x: xOffset, y:yOffset}, data: result };
     } else {
-        const height = vlw.lineHeight;
         const width = vlw.spaceWidth;
         const advWidth = vlw.spaceWidth;
-        const yOffset = 0;
-        const xOffset = 0;
         const pixelCount = width * vlw.lineHeight;
         const result = new ArrayBuffer(pixelCount*4);
         return { width: width, height: vlw.lineHeight, advWidth: advWidth, offset: {x: 0, y:0}, data: result };
