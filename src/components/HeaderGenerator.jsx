@@ -219,6 +219,10 @@ const HeaderGenerator = () => {
     var fontLineHeight;
     var filecache;
     var finfo;
+    var fsize;
+    var fset;
+    var funits;
+    var iscale;
     const [fileInfo, setFileInfo] = useState("");
     const [ident, setIdent] = useState("");
     const [fontSet, setFontSet] = useState(0);
@@ -245,7 +249,8 @@ const HeaderGenerator = () => {
         if (isNaN(n)) {
             n = 0;
         }
-        setFontSet(n);
+        fset = n;
+        setFontSet(fset);
         previewFile();
         gencache = undefined;
     }
@@ -254,15 +259,17 @@ const HeaderGenerator = () => {
         if (s === undefined || s === "") {
             s = "scale_1_1";
         }
+        iscale = s;
         setImageScale(s);
         previewFile();
         gencache = undefined;
     }
     const handleFontSizeValueChange = (e) => {
-        let n = Number.parseInt(e.target.value);
+        let n = Number.parseFloat(e.target.value);
         if (isNaN(n)) {
             n = 0;
         }
+        fsize = n;
         setFontSize(n);
         previewFile();
         gencache = undefined;
@@ -278,8 +285,9 @@ const HeaderGenerator = () => {
         if (u != "em" && u != "px") {
             u = "em";
         }
+        funits = u;
+        fsize = 0;
         setFontUnits(u);
-        setFontSize(fontSize); // force a refresh
         previewFile();
         gencache = undefined;
     }
@@ -476,6 +484,18 @@ const HeaderGenerator = () => {
         if(!finfo) {
             finfo = fileInfo;
         }
+        if(!fsize) {
+            fsize = fontSize;
+        }
+        if(!funits) {
+            funits = fontUnits;
+        }
+        if(!iscale) {
+            iscale = imageScale;
+        }
+        if(!fset) {
+            fset = fontSet;
+        }
         if (isSupportedImage(finfo)) {
             readImageDimensions(filecache,finfo.file.name.toLowerCase().endsWith(".svg")).then((value) => {
                 imageDimensions = value;
@@ -504,7 +524,7 @@ const HeaderGenerator = () => {
             }
         } else if (finfo.file.name.toLowerCase().endsWith(".fon") || finfo.file.name.toLowerCase().endsWith(".vlw")) {
             if (finfo.file.name.toLowerCase().endsWith(".fon")) {
-                const fon = fonLoad(filecache, fontSet);
+                const fon = fonLoad(filecache, fset);
                 fontLineHeight = fon.lineHeight;
                 setFontHeight(fontLineHeight);
                 const cvs = document.getElementById("rasterFont");
@@ -521,7 +541,7 @@ const HeaderGenerator = () => {
                         "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz", 0, 0, 0xFF0FF0FF);
                 }
             } else {
-                const vlw = vlwLoad(filecache, fontSet);
+                const vlw = vlwLoad(filecache);
                 fontLineHeight = vlw.lineHeight;
                 setFontHeight(fontLineHeight);
                 const cvs = document.getElementById("rasterFont");
@@ -532,43 +552,34 @@ const HeaderGenerator = () => {
                     cvs.height = cvs.offsetHeight;
                     const ctx = cvs.getContext("2d");
                     ctx.clearRect(0, 0, cvs.width, cvs.height);
-
                     drawVlwString(ctx, vlw,
                         "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz", 0, 0, 0xFF0FF0FF);
                 }
             }
         } else if (isTrueType(finfo.file.name)) {
-            const cvs = document.getElementById("vectorFont");
-            if (!cvs) {
-                console.log("Couldn't find font canvas");
+            const spn = document.getElementById("vectorFont");
+            if (!spn) {
+                console.log("Couldn't find font container");
             } else {
-                cvs.width = cvs.offsetWidth;
-                cvs.height = cvs.offsetHeight;
+                const blb = new Blob([filecache]);
+                const fnt = new FontFace("vectorFace", `url(${URL.createObjectURL(blb)})`);
+                fnt.load().then(() => {
+                    document.fonts.add(fnt);
+                    let fntsize = fsize;
+                    let funit = funits;
+                    if (!fntsize || fntsize === 0) {
+                        fntsize = 2;
+                    }
+                    if (!funit) {
+                        funit = "em";
+                    }
+                    spn.style+=`; font: ${fntsize}${funit} vectorFace`;
+                
+                    spn.innerHTML="<pre>"+
+                        "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz".replace(/[\u00A0-\u9999<>\&]/g, i => '&#'+i.charCodeAt(0)+';')+
+                        "</pre>";
+                });
             }
-            const blb = new Blob([filecache]);
-            const fnt = new FontFace("vectorFace", `url(${URL.createObjectURL(blb)})`);
-            fnt.load().then(() => {
-                document.fonts.add(fnt);
-                const ctx = cvs.getContext("2d");
-                let fsize = fontSize;
-                let funit = fontUnits;
-                if (!fsize || fsize === 0) {
-                    fsize = 24;
-                }
-                if (!funit) {
-                    funit = "px";
-                }
-                const f = `${fsize}${funit} vectorFace`;
-                ctx.font = f;
-                ctx.fontWeight = 400;
-                ctx.fontStretch = "normal";
-                ctx.fontStyle = "normal";
-                ctx.textAlign = "left";
-                ctx.textBaseline = "top";
-                ctx.fillStyle = `#FF0FF0`
-                ctx.fillText("0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz", 0, 0, cvs.width);
-
-            });
         }
     }
     const onDropFiles = (e) => {
@@ -635,7 +646,7 @@ const HeaderGenerator = () => {
                                 <tr>
                                     <td><label>Size: </label></td>
                                     <td>
-                                        <input type="text" value={fontSize} onChange={handleFontSizeValueChange} />
+                                        <input type="text" onChange={handleFontSizeValueChange} />
                                         <select onChange={handleFontSizeUnitChange} value={fontUnits}>
                                             <option>none</option>
                                             <option value="em">em</option>
@@ -693,7 +704,7 @@ const HeaderGenerator = () => {
             {fileInfo && !fileInfo.file.name.toLowerCase().endsWith(".tvg") && !fileInfo.file.name.toLowerCase().endsWith(".svg") && isSupportedImage(fileInfo) && (<img id="picture" onLoad={revokePicture()} />)}
             {fileInfo && fileInfo.file.name.toLowerCase().endsWith(".svg") && isSupportedImage(fileInfo) && (<div id="svgContainer" />)}
             {fileInfo && (fileInfo.file.name.toLowerCase().endsWith(".fon") || fileInfo.file.name.toLowerCase().endsWith(".vlw")) && (<canvas id="rasterFont" width={800} height={300} style={{ width: "%100", height: "100%" }} />)}
-            {fileInfo && isTrueType(fileInfo.file.name) && (<canvas id="vectorFont" width={800} height={300} />)}
+            {fileInfo && isTrueType(fileInfo.file.name) && (<span id="vectorFont" style={{width:"800px", height: "300px"}} />)}
         </>
     );
 };
