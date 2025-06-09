@@ -660,7 +660,7 @@ const tvgParseCommands = (ctx) => {
                 tvgParseLineFillPaths(ctx, data.size, data.fill_style, data.line_style, data.line_width);
             } break;
             default:
-                throw `TinyVG: Invalid command in document (0x${tvgToHex(cmd)})`;
+                throw new Error(`TinyVG: Invalid command in document (0x${tvgToHex(cmd)})`);
         }
     }
 }
