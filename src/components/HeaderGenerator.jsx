@@ -524,6 +524,14 @@ const HeaderGenerator = () => {
         if (isSupportedImage(finfo)) {
             if (finfo.file.name.toLowerCase().endsWith(".tvg")) {
                 tvgRender("tinyvg", filecache);
+                const pic = document.getElementById("tinyvg");
+                readImageDimensions(filecache, false).then((value) => {
+                    imageDimensions = value;
+                    setImageDim(imageDimensions);
+                    let w = imageDimensions.width;
+                    let h = imageDimensions.height;
+                    pic.style=`width: ${w}px; height: ${h}px`;
+                    });
             } else if (finfo.file.name.toLowerCase().endsWith(".svg")) {
                 const pic = document.getElementById("svgContainer");
                 if (!pic) {
@@ -537,7 +545,7 @@ const HeaderGenerator = () => {
                         setImageDim(imageDimensions);
                         let w = imageDimensions.width;
                         let h = imageDimensions.height;
-                        pic.style=`width: ${w}px; height: ${w}px`;
+                        pic.style=`width: ${w}px; height: ${h}px`;
                     });
                 }
             } else {
