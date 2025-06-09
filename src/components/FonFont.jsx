@@ -29,7 +29,6 @@ const drawFonString = (cvsctx, fon, str, x, y, col) => {
                 xo += fon.width;
             }
         }
-
     }
 }*/
 const fonReadUint8 = (ctx)=> { const result = ctx.view.getUint8(ctx.dataCursor); ctx.dataCursor+=1; return result; }
