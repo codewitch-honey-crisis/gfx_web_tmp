@@ -532,6 +532,13 @@ const HeaderGenerator = () => {
                     const decoder = new TextDecoder();
                     const str = decoder.decode(filecache);
                     pic.innerHTML = str;
+                    readImageDimensions(filecache, true).then((value) => {
+                        imageDimensions = value;
+                        setImageDim(imageDimensions);
+                        let w = imageDimensions.width;
+                        let h = imageDimensions.height;
+                        pic.style=`width: ${w}px; height: ${w}px`;
+                    });
                 }
             } else {
                 const pic = document.getElementById("picture");
