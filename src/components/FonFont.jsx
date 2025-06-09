@@ -37,10 +37,10 @@ const fonReadUint32 = (ctx) => { const result = ctx.view.getUint32(ctx.dataCurso
 
 const fonSeekChar = (ctx,ch) => {
     if(ctx.charTableOffset===0) {
-        throw "Fon: Not initialized";
+        throw new Error("Fon: Not initialized");
     }
     if(ch<ctx.firstCharCode||ch>ctx.lastCharCode) {
-        throw "Fon: Character not found";
+        throw new Error("Fon: Character not found");
     }
     const offs = ctx.charTableOffset + ctx.charTableLength * (ch-ctx.firstCharCode);
     ctx.dataCursor = offs+ctx.fontOffset;
@@ -100,10 +100,10 @@ export const fonLoad = (data, fontSetIndex = 0) => {
                 }
             }    
             if(result.fontOffset<0) {
-                throw new "Fon: Font index out of range"
+                throw new Error("Fon: Font index out of range");
             }
         } else {
-            throw "Fon: Not a 16-bit Windows 3.1 Font. Might be a 32-bit font, which is not supported";
+            throw new Error("Fon: Not a 16-bit Windows 3.1 Font. Might be a 32-bit font, which is not supported");
         }
     }
     result.dataCursor=result.fontOffset;
@@ -112,7 +112,7 @@ export const fonLoad = (data, fontSetIndex = 0) => {
     const ftype = fonReadUint16(result);
 	if(ftype & 1) {
 		// Font is a vector font
-		throw "Fon: Vector fonts are not supported"
+		throw new Error("Fon: Vector fonts are not supported")
     }
     result.dataCursor=result.fontOffset+0x58;
     result.lineHeight = fonReadUint16(result);
