@@ -154,9 +154,9 @@ const tvgReadColor = (ctx) => {
             return { r: data[0] / 255.0, g: data[1] / 255.0, b: data[2] / 255.0, a: data[3] / 255.0 };
         }
         case 3: // TVG_COLOR_CUSTOM
-            throw "TinyVG: Custom color table not supported";
+            throw new Error("TinyVG: Custom color table not supported");
         default:
-            throw "TinyVG: Invalid color format";
+            throw new Error("TinyVG: Invalid color format");
     }
 }
 const tvgParseGradient = (ctx) => {
@@ -175,7 +175,7 @@ const tvgParseStyle = (ctx, kind) => {
         case 2: //TVG_STYLE_RADIAL:
             return { kind: kind, radial: tvgParseGradient(ctx) };
         default:
-            throw "TinyVG: Invalid format parsing style";
+            throw new Error("TinyVG: Invalid format parsing style");
     }
 }
 const tvgParseFillHeader = (ctx, kind) => {
@@ -272,7 +272,7 @@ const tvgParsePathD = (ctx, size) => {
                 cur = endp;
             } break;
             default:
-                throw "TinyVG: Unrecognized command parsing path";
+                throw new Error("TinyVG: Unrecognized command parsing path");
         }
     }
     return result;
@@ -356,8 +356,8 @@ const tvgCreateSvgGradient = (ctx, style) => {
         defs.appendChild(node);
         ++ctx.gradIndex;
         return node.getAttributeNS(null, "id");
-    } else if (style.kind === 0) throw "TinyVG: attempt to pass flat style to create gradient";
-    else throw "TinyVG: attempt to pass an invalid style to create gradient";
+    } else if (style.kind === 0) throw new Error("TinyVG: attempt to pass flat style to create gradient");
+    else throw new Error("TinyVG: attempt to pass an invalid style to create gradient");
 }
 const tvgApplyStyle = (ctx, style, isFill) => {
     if (style.kind === 0) { // flat
@@ -376,11 +376,11 @@ const tvgApplyStyle = (ctx, style, isFill) => {
         } else {
             tvgAddSvgAttribute(ctx.elem, "stroke", `url(#${grad})`);
         }
-    } else throw "TinyVG: attempt to apply invalid style";
+    } else throw new Error("TinyVG: attempt to apply invalid style");
 }
 const tvgParseFillRectangles = (ctx, size, fill_style) => {
     let count = size;
-    if (count === 0) throw "TinyVG: Invalid zero length filled rectangles entry";
+    if (count === 0) throw new Error("TinyVG: Invalid zero length filled rectangles entry");
     let rect = tvgParseRect(ctx);
     let r = tvgCreateSvgNode("rect", rect);
     ctx.doc.appendChild(r);
@@ -406,7 +406,7 @@ const tvgParseFillRectangles = (ctx, size, fill_style) => {
 }
 const tvgParseLineFillRectangles = (ctx, size, fill_style, line_style, line_width) => {
     let count = size;
-    if (count === 0) throw "TinyVG: Invalid zero length line filled rectangles entry";
+    if (count === 0) throw new Error("TinyVG: Invalid zero length line filled rectangles entry");
     if (line_width === 0) {  // 0 width is invalid
         line_width = .001;
     }
@@ -443,7 +443,7 @@ const tvgParseLineFillRectangles = (ctx, size, fill_style, line_style, line_widt
     }
 }
 const tvgParseFillPaths = (ctx, size, style) => {
-    if (size === 0) throw "TinyVG: Invalid zero filled paths entry";
+    if (size === 0) throw new Error("TinyVG: Invalid zero filled paths entry");
     const attrs = {};
     attrs.fillRule = "evenodd";
     attrs.strokeOpacity = 0;
@@ -469,7 +469,7 @@ const tvgParseFillPaths = (ctx, size, style) => {
     tvgAddSvgAttribute(p, "d", d);
 }
 const tvgParseLinePaths = (ctx, size, line_style, line_width) => {
-    if (size === 0) throw "TinyVG: Invalid zero line paths entry";
+    if (size === 0) throw new Error("TinyVG: Invalid zero line paths entry");
     if (line_width === 0) {  // 0 width is invalid
         line_width = .001;
     }
@@ -499,7 +499,7 @@ const tvgParseLinePaths = (ctx, size, line_style, line_width) => {
     tvgAddSvgAttribute(p, "d", d);
 }
 const tvgParseLineFillPaths = (ctx, size, fill_style, line_style, line_width) => {
-    if (size === 0) throw "TinyVG: Invalid zero line filled paths entry";
+    if (size === 0) throw new Error("TinyVG: Invalid zero line filled paths entry");
     if (line_width === 0) {  // 0 width is invalid
         line_width = .001;
     }
@@ -535,7 +535,7 @@ const tvgParseLineFillPaths = (ctx, size, fill_style, line_style, line_width) =>
     tvgAddSvgAttribute(p, "d", d);
 }
 const tvgParseFillPolygon = (ctx, size, fill_style) => {
-    if (size === 0) throw "TinyVG: Invalid zero polygon entry";
+    if (size === 0) throw new Error("TinyVG: Invalid zero polygon entry");
     let count = size;
     let points = "";
     let pt = tvgReadPoint(ctx);
@@ -551,7 +551,7 @@ const tvgParseFillPolygon = (ctx, size, fill_style) => {
     tvgApplyStyle(ctx, fill_style, true);
 }
 const tvgParsePolyline = (ctx, size, line_style, line_width, close) => {
-    if (size === 0) throw "TinyVG: Invalid zero polyline entry";
+    if (size === 0) throw new Error("TinyVG: Invalid zero polyline entry");
     if (line_width === 0) {  // 0 width is invalid
         line_width = .001;
     }
@@ -570,7 +570,7 @@ const tvgParsePolyline = (ctx, size, line_style, line_width, close) => {
     tvgApplyStyle(ctx, line_style, false);
 }
 const tvgParseLineFillPolyline = (ctx, size, fill_style, line_style, line_width, close) => {
-    if (size === 0) throw "TinyVG: Invalid zero line fill polyline entry";
+    if (size === 0) throw new Error("TinyVG: Invalid zero line fill polyline entry");
     if (line_width === 0) {  // 0 width is invalid
         line_width = .001;
     }
@@ -590,7 +590,7 @@ const tvgParseLineFillPolyline = (ctx, size, fill_style, line_style, line_width,
     tvgApplyStyle(ctx, line_style, false);
 }
 const tvgParseLines = (ctx, size, line_style, line_width) => {
-    if (size === 0) throw "TinyVG: Invalid zero lines entry";
+    if (size === 0) throw new Error("TinyVG: Invalid zero lines entry");
     for (let i = 0; i < size; ++i) {
         const pt1 = tvgReadPoint(ctx);
         const pt2 = tvgReadPoint(ctx);
@@ -687,8 +687,8 @@ export const tvgDimensions = (data) => {
 }
 // Render a TVG in an arraybuffer (data) to an SVG tag indicated by the id
 export const tvgRender = (id, data) => {
-    if (!id) throw "TinyVG: Must specify the id of an SVG element";
-    if (!data) throw "TinyVG: Must provide an ArrayBuffer with TVG data";
+    if (!id) throw new Error("TinyVG: Must specify the id of an SVG element");
+    if (!data) throw new Error("TinyVG: Must provide an ArrayBuffer with TVG data");
     const view = new DataView(data);
     if (view.byteLength > 5) {
         if (view.getUint8(0) == 0x72 && view.getUint8(1) == 0x56 && view.getUint8(2) == 1) {
@@ -704,7 +704,7 @@ export const tvgRender = (id, data) => {
                 ctx.width = tvgMapZeroToMax(ctx, w);
                 ctx.height = tvgMapZeroToMax(ctx, h);
                 const colcount = tvgReadU32(ctx);
-                if (!colcount || colcount === 0) throw "TinyVG: invalid format - color table contains nothing";
+                if (!colcount || colcount === 0) throw new Error("TinyVG: invalid format - color table contains nothing");
                 for (let i = 0; i < colcount; ++i) {
                     ctx.colors.push(tvgReadColor(ctx));
                 }
@@ -719,5 +719,5 @@ export const tvgRender = (id, data) => {
             }
         }
     }
-    throw "TinyVG: Not a valid TinyVG file";
+    throw new Error("TinyVG: Not a valid TinyVG file");
 }
