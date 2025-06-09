@@ -328,6 +328,7 @@ const HeaderGenerator = () => {
                         };
                         resolve(dim);
                     };
+                    img.src = imgsrc;
                 }
             } else {
                 var decoder = new TextDecoder('utf-8');
@@ -350,7 +351,7 @@ const HeaderGenerator = () => {
                     reject();
                 }
             }
-            img.src = imgsrc;
+            
 
         });
     }
