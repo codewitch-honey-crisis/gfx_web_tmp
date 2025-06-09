@@ -20,6 +20,7 @@ const fonSeekChar = (ctx,ch) => {
     const offs = ctx.charTableOffset + ctx.charTableLength * (ch-ctx.firstCharCode);
     ctx.dataCursor = offs+ctx.fontOffset;
 }
+// loads a .FON file arraybuffer and returns a font handle
 export const fonLoad = (data, fontSetIndex = 0) => {
     const result = {
         data: data,
@@ -102,7 +103,7 @@ export const fonLoad = (data, fontSetIndex = 0) => {
     result.lastCharCode = fonReadUint8(result);
     return result;
 }
-
+// create a glyph from a font handle, a charCode and a color
 export const fonMakeGlyph = (fon,charCode,color) => {
     fonSeekChar(fon,charCode);
     const width = fonReadUint16(fon);
