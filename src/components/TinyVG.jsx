@@ -1,5 +1,5 @@
 // TinyVG Renderer 
-// Copyright (C) by honey the codewitch
+// Copyright (C) 2025 by honey the codewitch
 // MIT License
 // To use, pass am ArrayBuffer with the
 // TVG document to tvgDimensions
@@ -10,8 +10,6 @@
 // method. At that point, the SVG tag
 // will be populated and rendered by
 // the browser.
-
-// BUG: fill rule seems to be stuck at non-zero
 
 const tvgInit = (data, id) => {
     return {
@@ -465,15 +463,10 @@ const tvgParseFillPaths = (ctx, size, style) => {
         attrs.fillOpacity = p.getAttributeNS(null, "fill-opacity");
     }
     let d = tvgParsePathD(ctx, sizes[0]);
-    tvgAddSvgAttribute(p, "d", d);
     for (let i = 1; i < size; ++i) {
-        d = tvgParsePathD(ctx, sizes[i]);
-        const localAttrs = { ...attrs };
-        localAttrs.d = d;
-        p = tvgCreateSvgNode("path", localAttrs);
-        ctx.doc.appendChild(p);
-        ctx.elem = p;
+        d+= ` ${tvgParsePathD(ctx, sizes[i])}`;
     }
+    tvgAddSvgAttribute(p, "d", d);
 }
 const tvgParseLinePaths = (ctx, size, line_style, line_width) => {
     if (size === 0) throw "TinyVG: Invalid zero line paths entry";
@@ -500,15 +493,10 @@ const tvgParseLinePaths = (ctx, size, line_style, line_width) => {
     attrs.strokeWidth = line_width;
     attrs.fillOpacity = 0;
     let d = tvgParsePathD(ctx, sizes[0]);
-    tvgAddSvgAttribute(p, "d", d);
     for (let i = 1; i < size; ++i) {
-        d = tvgParsePathD(ctx, sizes[i]);
-        const localAttrs = { ...attrs };
-        localAttrs.d = d;
-        p = tvgCreateSvgNode("path", localAttrs);
-        ctx.doc.appendChild(p);
-        ctx.elem = p;
+        d+= ` ${tvgParsePathD(ctx, sizes[i])}`;
     }
+    tvgAddSvgAttribute(p, "d", d);
 }
 const tvgParseLineFillPaths = (ctx, size, fill_style, line_style, line_width) => {
     if (size === 0) throw "TinyVG: Invalid zero line filled paths entry";
@@ -541,15 +529,10 @@ const tvgParseLineFillPaths = (ctx, size, fill_style, line_style, line_width) =>
     attrs.strokeWidth = line_width;
     tvgAddSvgAttribute(p, "stroke-width", line_width);
     let d = tvgParsePathD(ctx, sizes[0]);
-    tvgAddSvgAttribute(p, "d", d);
     for (let i = 1; i < size; ++i) {
-        d = tvgParsePathD(ctx, sizes[i]);
-        const localAttrs = { ...attrs };
-        localAttrs.d = d;
-        p = tvgCreateSvgNode("path", localAttrs);
-        ctx.doc.appendChild(p);
-        ctx.elem = p;
+        d+= ` ${tvgParsePathD(ctx, sizes[i])}`;
     }
+    tvgAddSvgAttribute(p, "d", d);
 }
 const tvgParseFillPolygon = (ctx, size, fill_style) => {
     if (size === 0) throw "TinyVG: Invalid zero polygon entry";

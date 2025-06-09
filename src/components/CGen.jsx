@@ -1,3 +1,4 @@
+// just some utility functions for rendering C/++ code
 const toHex = (code) => {
     let result = code.toString(16);
     if (result.length === 1) {
