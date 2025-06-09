@@ -269,6 +269,7 @@ const HeaderGenerator = () => {
         setImageScale(s);
         gencache = undefined;
         setGenContent(undefined);
+        previewFile();
     }
     const handleFontSizeValueChange = (e) => {
         let n = Number.parseFloat(e.target.value);
@@ -521,10 +522,6 @@ const HeaderGenerator = () => {
         }
 
         if (isSupportedImage(finfo)) {
-            readImageDimensions(filecache, finfo.file.name.toLowerCase().endsWith(".svg")).then((value) => {
-                imageDimensions = value;
-                setImageDim(imageDimensions);
-            });
             if (finfo.file.name.toLowerCase().endsWith(".tvg")) {
                 tvgRender("tinyvg", filecache);
             } else if (finfo.file.name.toLowerCase().endsWith(".svg")) {
@@ -544,6 +541,33 @@ const HeaderGenerator = () => {
                     const blb = new Blob([filecache]);
                     const url = URL.createObjectURL(blb);
                     pic.src = url;
+                    console.log(imageDimensions);
+                    readImageDimensions(filecache, finfo.file.name.toLowerCase().endsWith(".svg")).then((value) => {
+                        imageDimensions = value;
+                        setImageDim(imageDimensions);
+                        let w = imageDimensions.width;
+                        let h = imageDimensions.height;
+                        if(finfo.file.name.toLowerCase().endsWith(".jpg") && iscale) {
+                            switch(iscale) {
+                                case "scale_1_2":
+                                    w/=2;
+                                    h/=2;
+                                    break;
+                                case "scale_1_4":
+                                    w/=4;
+                                    h/=4;
+                                    break;
+                                case "scale_1_8":
+                                    w/=8;
+                                    h/=8;
+                                    break;
+
+                            }
+                        }
+                        pic.width=w;
+                        pic.height=h;
+                    });
+                    
                 }
             }
         } else if (finfo.file.name.toLowerCase().endsWith(".fon") || finfo.file.name.toLowerCase().endsWith(".vlw")) {
