@@ -623,7 +623,7 @@ const HeaderGenerator = () => {
                             <tr>
                                 <td><label>Identifier: </label></td><td><input type="text" id="identifier" value={ident} onChange={handleIdentChange} /></td>
                             </tr>
-                            {finfo && finfo.file.name.toLowerCase().endsWith(".fon") && genType.startsWith("G") && (
+                            {fileInfo && fileInfo.file.name.toLowerCase().endsWith(".fon") && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Set Index: </label></td>
                                     <td>
@@ -631,7 +631,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
-                            {finfo && isTrueType(finfo.file.name) && genType.startsWith("G") && (
+                            {fileInfo && isTrueType(fileInfo.file.name) && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Size: </label></td>
                                     <td>
@@ -644,7 +644,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
-                            {finfo && finfo.file.type == "image/jpeg" && genType.startsWith("G") && (
+                            {fileInfo && fileInfo.file.type == "image/jpeg" && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Scale: </label></td>
                                     <td>
@@ -660,22 +660,22 @@ const HeaderGenerator = () => {
                         </tbody>
                     </table>
                 </div>
-                {finfo && (
+                {fileInfo && (
                     <section>
                         File details:
                         <ul>
-                            {finfo.file.type && (
-                                <li>MIME: <span className="fileType">{finfo.file.type}</span></li>)}
-                            {isSupportedImage(finfo) && imageDim && (
+                            {fileInfo.file.type && (
+                                <li>MIME: <span className="fileType">{fileInfo.file.type}</span></li>)}
+                            {isSupportedImage(fileInfo) && imageDim && (
                                 <li>Dimensions: <span className="fileDim">{imageDim.width}x{imageDim.height}</span></li>)}
-                            <li>Size: <span className="fileSize">{finfo.file.size} bytes</span></li>
+                            <li>Size: <span className="fileSize">{fileInfo.file.size} bytes</span></li>
                             <li>Type: <span className="genType">{getCreatedTypeName()}</span></li>
                         </ul>
 
                     </section>
                 )}
 
-                {finfo && ident && ident.length > 0 && (
+                {fileInfo && ident && ident.length > 0 && (
                     <>
                         <button onClick={generateContentFile}
                             className="submit"
