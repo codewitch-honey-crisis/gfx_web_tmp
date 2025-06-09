@@ -31,19 +31,19 @@ const drawFonString = (cvsctx, fon, str, x, y, col) => {
         }
     }
 }*/
-const fonReadUint8 = (ctx)=> { const result = ctx.view.getUint8(ctx.dataCursor); ctx.dataCursor+=1; return result; }
-const fonReadUint16 = (ctx) => { const result = ctx.view.getUint16(ctx.dataCursor,true); ctx.dataCursor+=2; return result; }
-const fonReadUint32 = (ctx) => { const result = ctx.view.getUint32(ctx.dataCursor,true); ctx.dataCursor+=4; return result; }
+const fonReadUint8 = (ctx) => { const result = ctx.view.getUint8(ctx.dataCursor); ctx.dataCursor += 1; return result; }
+const fonReadUint16 = (ctx) => { const result = ctx.view.getUint16(ctx.dataCursor, true); ctx.dataCursor += 2; return result; }
+const fonReadUint32 = (ctx) => { const result = ctx.view.getUint32(ctx.dataCursor, true); ctx.dataCursor += 4; return result; }
 
-const fonSeekChar = (ctx,ch) => {
-    if(ctx.charTableOffset===0) {
+const fonSeekChar = (ctx, ch) => {
+    if (ctx.charTableOffset === 0) {
         throw new Error("Fon: Not initialized");
     }
-    if(ch<ctx.firstCharCode||ch>ctx.lastCharCode) {
+    if (ch < ctx.firstCharCode || ch > ctx.lastCharCode) {
         throw new Error("Fon: Character not found");
     }
-    const offs = ctx.charTableOffset + ctx.charTableLength * (ch-ctx.firstCharCode);
-    ctx.dataCursor = offs+ctx.fontOffset;
+    const offs = ctx.charTableOffset + ctx.charTableLength * (ch - ctx.firstCharCode);
+    ctx.dataCursor = offs + ctx.fontOffset;
 }
 // loads a .FON file arraybuffer and returns a font handle
 export const fonLoad = (data, fontSetIndex = 0) => {
@@ -61,108 +61,108 @@ export const fonLoad = (data, fontSetIndex = 0) => {
         dataCursor: 0
     };
     let isFon = false;
-    if(fonReadUint8(result)==='M'.charCodeAt(0) && fonReadUint8(result)==='Z'.charCodeAt(0)) {
+    if (fonReadUint8(result) === 'M'.charCodeAt(0) && fonReadUint8(result) === 'Z'.charCodeAt(0)) {
         isFon = true;
     }
-    if(isFon) {
+    if (isFon) {
         result.dataCursor = 0x3C;
         const neoff = fonReadUint32(result);
         result.dataCursor = neoff;
-        if(fonReadUint8(result)==='N'.charCodeAt(0) && fonReadUint8(result)==='E'.charCodeAt(0)) {
+        if (fonReadUint8(result) === 'N'.charCodeAt(0) && fonReadUint8(result) === 'E'.charCodeAt(0)) {
             result.dataCursor = neoff + 0x24;
             const rtable = fonReadUint16(result);
             const rtablea = rtable + neoff;
             result.dataCursor = rtablea;
             const shift = fonReadUint16(result);
             let ii = 0;
-            while(result.fontOffset<0) {
-                const rtype=fonReadUint16(result);
-                if(0===rtype)
+            while (result.fontOffset < 0) {
+                const rtype = fonReadUint16(result);
+                if (0 === rtype)
                     break; // end of resource table
-                const count=fonReadUint16(result);
+                const count = fonReadUint16(result);
                 // skip 4 bytes (reserved)
-                result.dataCursor+=4;
-                for(let i = 0;i < count;++i) {
-                    const start=fonReadUint16(result)<<shift;
+                result.dataCursor += 4;
+                for (let i = 0; i < count; ++i) {
+                    const start = fonReadUint16(result) << shift;
                     // skip the size, we don't need it.
-                    result.dataCursor+=2;
-                    if(0x8008===rtype) { // is font entry
-                        if(ii===result.fontIndex) {
+                    result.dataCursor += 2;
+                    if (0x8008 === rtype) { // is font entry
+                        if (ii === result.fontIndex) {
                             result.fontOffset = start;
                             break;
                         }
                         ++ii;
                     }
-                    if(result.fontOffset>-1) {
+                    if (result.fontOffset > -1) {
                         break;
                     }
-                    result.dataCursor+=8;
+                    result.dataCursor += 8;
                 }
-            }    
-            if(result.fontOffset<0) {
+            }
+            if (result.fontOffset < 0) {
                 throw new Error("Fon: Font index out of range");
             }
         } else {
             throw new Error("Fon: Not a 16-bit Windows 3.1 Font. Might be a 32-bit font, which is not supported");
         }
     }
-    result.dataCursor=result.fontOffset;
+    result.dataCursor = result.fontOffset;
     const version = fonReadUint16(result);
-    result.dataCursor=result.fontOffset+0x42;
+    result.dataCursor = result.fontOffset + 0x42;
     const ftype = fonReadUint16(result);
-	if(ftype & 1) {
-		// Font is a vector font
-		throw new Error("Fon: Vector fonts are not supported")
+    if (ftype & 1) {
+        // Font is a vector font
+        throw new Error("Fon: Vector fonts are not supported")
     }
-    result.dataCursor=result.fontOffset+0x58;
+    result.dataCursor = result.fontOffset + 0x58;
     result.lineHeight = fonReadUint16(result);
-    if(version==0x200) {
+    if (version == 0x200) {
         result.charTableOffset = 0x76;
         result.charTableLength = 4;
     } else {
         result.charTableOffset = 0x94;
         result.charTableLength = 6;
     }
-    result.dataCursor=result.fontOffset+0x5f;
+    result.dataCursor = result.fontOffset + 0x5f;
     result.firstCharCode = fonReadUint8(result);
     result.lastCharCode = fonReadUint8(result);
     return result;
 }
 // create a glyph from a font handle, a charCode and a color
-export const fonMakeGlyph = (fon,charCode,color) => {
-    fonSeekChar(fon,charCode);
+export const fonMakeGlyph = (fon, charCode, color) => {
+    fonSeekChar(fon, charCode);
     const width = fonReadUint16(fon);
     const pixelCount = width * fon.lineHeight;
-    const result = new ArrayBuffer(pixelCount*4);
+    const result = new ArrayBuffer(pixelCount * 4);
     const view = new DataView(result);
-    const widthBytes = Math.floor((width+7)/8);    
-    
+    const widthBytes = Math.floor((width + 7) / 8);
+
     var offs;
-    if(fon.charTableLength===4){
+    if (fon.charTableLength === 4) {
         offs = fonReadUint16(fon)
     } else {
         offs = fonReadUint32(fon);
     }
     let cur = 0;
-    for(let j=0;j<fon.lineHeight;++j) {
+    for (let j = 0; j < fon.lineHeight; ++j) {
         let accum = 0;
         for (let i = 0; i < widthBytes; ++i) {
-            const bytepos = offs+i*fon.lineHeight+j;
-            fon.dataCursor=(bytepos+fon.fontOffset);
-            accum<<=8;
-            accum|=fonReadUint8(fon);
+            const bytepos = offs + i * fon.lineHeight + j;
+            fon.dataCursor = (bytepos + fon.fontOffset);
+            accum <<= 8;
+            accum |= fonReadUint8(fon);
         }
-        const shift = (widthBytes*8)-width;
-        accum>>>=shift;
+        const shift = (widthBytes * 8) - width;
+        accum >>>= shift;
         const m = (1 << (width - 1));
-        for(let i = 0;i<width;++i) {
-            if(0!==(accum & m)) {
-                view.setUint32(cur,color);
+        for (let i = 0; i < width; ++i) {
+            if (0 !== (accum & m)) {
+                view.setUint32(cur, color);
             } else {
-                view.setUint32(cur,0);
+                view.setUint32(cur, 0);
             }
-            cur+=4;
-            accum<<=1;
+            cur += 4;
+            accum <<= 1;
         }
     }
     return { width: width, height: fon.lineHeight, data: result };
