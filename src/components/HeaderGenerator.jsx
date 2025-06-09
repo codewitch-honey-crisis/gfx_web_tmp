@@ -352,7 +352,7 @@ const HeaderGenerator = () => {
                     reject();
                 }
             }
-            
+
 
         });
     }
@@ -493,7 +493,6 @@ const HeaderGenerator = () => {
                 } else {
                     xo += vlw.spaceWidth;
                 }
-
             }
         }
     }
@@ -530,8 +529,8 @@ const HeaderGenerator = () => {
                     setImageDim(imageDimensions);
                     let w = imageDimensions.width;
                     let h = imageDimensions.height;
-                    pic.style=`width: ${w}px; height: ${h}px`;
-                    });
+                    pic.style = `width: ${w}px; height: ${h}px`;
+                });
             } else if (finfo.file.name.toLowerCase().endsWith(".svg")) {
                 const pic = document.getElementById("svgContainer");
                 if (!pic) {
@@ -545,7 +544,7 @@ const HeaderGenerator = () => {
                         setImageDim(imageDimensions);
                         let w = imageDimensions.width;
                         let h = imageDimensions.height;
-                        pic.style=`width: ${w}px; height: ${h}px`;
+                        pic.style = `width: ${w}px; height: ${h}px`;
                     });
                 }
             } else {
@@ -562,27 +561,26 @@ const HeaderGenerator = () => {
                         setImageDim(imageDimensions);
                         let w = imageDimensions.width;
                         let h = imageDimensions.height;
-                        if(finfo.file.name.toLowerCase().endsWith(".jpg") && iscale) {
-                            switch(iscale) {
+                        if (finfo.file.name.toLowerCase().endsWith(".jpg") && iscale) {
+                            switch (iscale) {
                                 case "scale_1_2":
-                                    w/=2;
-                                    h/=2;
+                                    w /= 2;
+                                    h /= 2;
                                     break;
                                 case "scale_1_4":
-                                    w/=4;
-                                    h/=4;
+                                    w /= 4;
+                                    h /= 4;
                                     break;
                                 case "scale_1_8":
-                                    w/=8;
-                                    h/=8;
+                                    w /= 8;
+                                    h /= 8;
                                     break;
-
                             }
                         }
-                        pic.width=w;
-                        pic.height=h;
+                        pic.width = w;
+                        pic.height = h;
                     });
-                    
+
                 }
             }
         } else if (finfo.file.name.toLowerCase().endsWith(".fon") || finfo.file.name.toLowerCase().endsWith(".vlw")) {
@@ -708,7 +706,7 @@ const HeaderGenerator = () => {
                                 <tr>
                                     <td><label>Set Index: </label></td>
                                     <td>
-                                        <input type="text" value={fontSet} onChange={handleFontSetValueChange} />
+                                        <input type="text" onChange={handleFontSetValueChange} />
                                     </td>
                                 </tr>
                             )}
