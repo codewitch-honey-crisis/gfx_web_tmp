@@ -592,9 +592,11 @@ const HeaderGenerator = () => {
                 if (!idnt) {
                     idnt = toIdentifier(finfo.file.name);
                 }
-                const fnt = new FontFace(idnt, `url(${URL.createObjectURL(blb)})`);
+                const fnturl = URL.createObjectURL(blb);
+                const fnt = new FontFace(idnt, `url(${fnturl})`);
                 fnt.load().then(() => {
                     document.fonts.add(fnt);
+                    URL.revokeObjectURL(fnturl);
                     let fntsize = fsize;
                     let funit = funits;
                     if (!fntsize || fntsize === 0) {
