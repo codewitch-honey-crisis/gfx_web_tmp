@@ -1,6 +1,11 @@
 // Reads 16-bit Windows 3.1 font files and provides facilities to enable drawing with them
 // Copyright (C) 2025 by honey the codewitch
 // MIT License
+// To use this file, import fonLoad() and call it with an ArrayBuffer full of ".FON" file
+// and also the fontSetIndex if it's something other than zero. You'll need to hang onto the return
+// value, because it's passed to fonMakeGlyph, which takes it as the first argument, followed by a
+// a charCode, and a color in 32-bit ARGB hex format. It produces a glyph with metrics, and a data
+// field array buffer that can be used to construct an ImageData to pass to a canvas.
 const fonReadUint8 = (ctx)=> { const result = ctx.view.getUint8(ctx.dataCursor); ctx.dataCursor+=1; return result; }
 const fonReadUint16 = (ctx) => { const result = ctx.view.getUint16(ctx.dataCursor,true); ctx.dataCursor+=2; return result; }
 const fonReadUint32 = (ctx) => { const result = ctx.view.getUint32(ctx.dataCursor,true); ctx.dataCursor+=4; return result; }
