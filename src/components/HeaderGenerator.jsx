@@ -215,6 +215,7 @@ const getGeneratedLanguage = (genType) => {
 const HeaderGenerator = () => {
     let downloadUrl = "";
     var gencache;
+    var gentype;
     var imageDimensions;
     var fontLineHeight;
     var filecache;
@@ -305,12 +306,15 @@ const HeaderGenerator = () => {
 
     }
     const handleTypeChange = (e) => {
-        if (genType != e.target.value) {
-            setGenType(e.target.value);
-            gencache = undefined;
-            setGenContent(undefined);
-            previewFile();
-        }
+        gentype = e.target.value;
+        setGenType(gentype);
+        iscale = "scale_1_1";
+        setImageScale(iscale);
+        gencache = undefined;
+        setGenContent(undefined);
+        
+        previewFile();
+    
     }
 
     const readImageDimensions = async (data, isSvg = false) => {
@@ -520,7 +524,13 @@ const HeaderGenerator = () => {
         if (!fset) {
             fset = fontSet;
         }
-
+        if(!gentype) {
+            if(!genType) {
+                gentype="C";
+            } else {
+                gentype = genType;
+            }
+        }
         if (isSupportedImage(finfo)) {
             if (finfo.file.name.toLowerCase().endsWith(".tvg")) {
                 tvgRender("tinyvg", filecache);
@@ -562,19 +572,22 @@ const HeaderGenerator = () => {
                         let w = imageDimensions.width;
                         let h = imageDimensions.height;
                         if (finfo.file.name.toLowerCase().endsWith(".jpg") && iscale) {
-                            switch (iscale) {
-                                case "scale_1_2":
-                                    w /= 2;
-                                    h /= 2;
-                                    break;
-                                case "scale_1_4":
-                                    w /= 4;
-                                    h /= 4;
-                                    break;
-                                case "scale_1_8":
-                                    w /= 8;
-                                    h /= 8;
-                                    break;
+                            console.log("gentype: "+gentype);
+                            if(gentype && gentype.startsWith("G")) {
+                                switch (iscale) {
+                                    case "scale_1_2":
+                                        w /= 2;
+                                        h /= 2;
+                                        break;
+                                    case "scale_1_4":
+                                        w /= 4;
+                                        h /= 4;
+                                        break;
+                                    case "scale_1_8":
+                                        w /= 8;
+                                        h /= 8;
+                                        break;
+                                }
                             }
                         }
                         pic.width = w;
@@ -693,7 +706,7 @@ const HeaderGenerator = () => {
                             <tr>
                                 <td><label>Output:</label></td>
                                 <td>
-                                    <select id="output" value={genType} onChange={handleTypeChange}>
+                                    <select id="output" defaultValue={genType} onChange={handleTypeChange}>
                                         <option value="C">Raw C/++</option>
                                         <option value="GFX2">GFX 2.x</option>
                                     </select>
