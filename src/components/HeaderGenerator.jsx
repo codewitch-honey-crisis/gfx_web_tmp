@@ -555,7 +555,6 @@ const HeaderGenerator = () => {
                     const blb = new Blob([filecache]);
                     const url = URL.createObjectURL(blb);
                     pic.src = url;
-                    console.log(imageDimensions);
                     readImageDimensions(filecache, finfo.file.name.toLowerCase().endsWith(".svg")).then((value) => {
                         imageDimensions = value;
                         setImageDim(imageDimensions);
