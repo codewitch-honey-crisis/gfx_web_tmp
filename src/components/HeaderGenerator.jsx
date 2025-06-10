@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import clang from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
 import cpplang from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
@@ -39,7 +39,7 @@ const HeaderGenerator = () => {
         // is better than directly setting `setValue(value + 1)`
     }
     
-    const [fileInfo, setFileInfo] = useState("");
+    const fileInfo = useRef("");
     const [ident, setIdent] = useState("");
     const [fontSet, setFontSet] = useState(0);
     const [fontHeight, setFontHeight] = useState(0);
@@ -266,7 +266,7 @@ const HeaderGenerator = () => {
         return "cpp";
     }
     const handleFileChange = (e) => {
-        setFileInfo({ file: e.target.files[0], type: e.target.files[0].type });
+        fileInfo.current=({ file: e.target.files[0], type: e.target.files[0].type });
         setIdent(toIdentifier(e.target.files[0].name));
         gencache = undefined;
     };
@@ -377,16 +377,16 @@ const HeaderGenerator = () => {
         });
     }
     const getCreatedTypeName = () => {
-        if (fileInfo) {
+        if (fileInfo.current) {
             if (!genType || genType === "" || genType === "C") {
-                if (isText(fileInfo.type)) {
+                if (isText(fileInfo.current.type)) {
                     return "const char*";
                 } else {
                     return "const uint8_t[]";
                 }
             }
-            const fileType = fileInfo.type;
-            const fileName = fileInfo.file.name;
+            const fileType = fileInfo.current.type;
+            const fileName = fileInfo.current.file.name;
             const size = fontSize;
             const units = fontUnits;
             if (fileType === undefined || fileType === "" && isFileExt(fileName,".fon")) {
@@ -408,12 +408,12 @@ const HeaderGenerator = () => {
     }
 
     const generateContentClip = () => {
-        if (!gencache && fileInfo.file) {
+        if (!gencache && fileInfo.current.file) {
             let reader = new FileReader();
-            reader.readAsArrayBuffer(fileInfo.file);
+            reader.readAsArrayBuffer(fileInfo.current.file);
             reader.onload = async function (evt) {
                 console.log("generating content to clipboard");
-                gencache = generateHeader(ident, fileInfo, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, evt.target.result);
+                gencache = generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, evt.target.result);
                 await navigator.clipboard.writeText(gencache);
             }
         } else if (gencache) {
@@ -441,12 +441,12 @@ const HeaderGenerator = () => {
     }
 
     const generateContentFile = () => {
-        if (!gencache && fileInfo.file) {
+        if (!gencache && fileInfo.current.file) {
             let reader = new FileReader();
-            reader.readAsArrayBuffer(fileInfo.file);
+            reader.readAsArrayBuffer(fileInfo.current.file);
             reader.onload = function (evt) {
                 console.log("generating content to file");
-                gencache = generateHeader(ident, fileInfo, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, evt.target.result);
+                gencache = generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, evt.target.result);
                 setGeneratedFileUrl();
             }
         } else if (gencache) {
@@ -517,7 +517,7 @@ const HeaderGenerator = () => {
         }
     }
     const previewFile = () => {
-        if ((!finfo && !fileInfo) || (!filecache && !fileCache)) {
+        if ((!finfo && !fileInfo.current) || (!filecache && !fileCache)) {
             console.log("No gen info");
             return;
         }
@@ -525,7 +525,7 @@ const HeaderGenerator = () => {
             filecache = fileCache;
         }
         if (!finfo) {
-            finfo = fileInfo;
+            finfo = fileInfo.current;
         }
         if (!fsize) {
             fsize = fontSize;
@@ -681,7 +681,7 @@ const HeaderGenerator = () => {
         inputFile.files = e.dataTransfer.files;
         const fi = { file: e.dataTransfer.files[0], type: e.dataTransfer.files[0].type };
         finfo = fi;
-        setFileInfo(fi);
+        fileInfo.current=fi;
         setIdent(toIdentifier(e.dataTransfer.files[0].name));
 
         setImageScale(undefined); // set this back so it doesn't accidentally get set to something other than the default
@@ -724,7 +724,7 @@ const HeaderGenerator = () => {
                             <tr>
                                 <td><label>Identifier: </label></td><td><input type="text" id="identifier" value={ident} onChange={handleIdentChange} /></td>
                             </tr>
-                            {fileInfo && isFileExt(fileInfo.file.name,".fon") && genType.startsWith("G") && (
+                            {fileInfo.current && isFileExt(fileInfo.current.file.name,".fon") && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Set Index: </label></td>
                                     <td>
@@ -732,7 +732,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
-                            {fileInfo && isTrueType(fileInfo.file.name) && genType.startsWith("G") && (
+                            {fileInfo.current && isTrueType(fileInfo.current.file.name) && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Size: </label></td>
                                     <td>
@@ -745,7 +745,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
-                            {fileInfo && fileInfo.file.type == "image/jpeg" && genType.startsWith("G") && (
+                            {fileInfo.current && fileInfo.current.file.type == "image/jpeg" && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Scale: </label></td>
                                     <td>
@@ -761,22 +761,22 @@ const HeaderGenerator = () => {
                         </tbody>
                     </table>
                 </div>
-                {fileInfo && (
+                {fileInfo.current && (
                     <section>
                         File details:
                         <ul>
-                            {fileInfo.file.type && (
-                                <li>MIME: <span className="fileType">{fileInfo.file.type}</span></li>)}
-                            {isSupportedImage(fileInfo) && imageDim && (
+                            {fileInfo.current.file.type && (
+                                <li>MIME: <span className="fileType">{fileInfo.current.file.type}</span></li>)}
+                            {isSupportedImage(fileInfo.current) && imageDim && (
                                 <li>Dimensions: <span className="fileDim">{imageDim.width}x{imageDim.height}</span></li>)}
-                            <li>Size: <span className="fileSize">{fileInfo.file.size} bytes</span></li>
+                            <li>Size: <span className="fileSize">{fileInfo.current.file.size} bytes</span></li>
                             <li>Type: <span className="genType">{getCreatedTypeName()}</span></li>
                         </ul>
 
                     </section>
                 )}
 
-                {fileInfo && ident && ident.length > 0 && (
+                {fileInfo.current && ident && ident.length > 0 && (
                     <>
                         <button onClick={generateContentFile}
                             className="submit"
@@ -788,13 +788,13 @@ const HeaderGenerator = () => {
                     </>
                 )}
             </div><br />
-            {fileInfo && (<><h4>Preview</h4></>)}
-            {fileInfo && ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
-            {fileInfo && isFileExt(fileInfo.file.name,".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
-            {fileInfo && !isFileExt(fileInfo.file.name,".tvg") && !isFileExt(fileInfo.file.name,".svg") && isSupportedImage(fileInfo) && (<img id="picture" onLoad={revokePicture()} />)}
-            {fileInfo && isFileExt(fileInfo.file.name,".svg") && isSupportedImage(fileInfo) && (<div id="svgContainer" />)}
-            {fileInfo && (isFileExt(fileInfo.file.name,".fon") || isFileExt(fileInfo.file.name,".vlw")) && (<canvas id="rasterFont" width={800} height={300} style={{ width: "%100", height: "100%" }} />)}
-            {fileInfo && isTrueType(fileInfo.file.name) && (<span id="vectorFont" style={{ width: "800px", height: "300px" }} />)}
+            {fileInfo.current && (<><h4>Preview</h4></>)}
+            {fileInfo.current && ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
+            {fileInfo.current && isFileExt(fileInfo.current.file.name,".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
+            {fileInfo.current && !isFileExt(fileInfo.current.file.name,".tvg") && !isFileExt(fileInfo.current.file.name,".svg") && isSupportedImage(fileInfo.current) && (<img id="picture" onLoad={revokePicture()} />)}
+            {fileInfo.current && isFileExt(fileInfo.current.file.name,".svg") && isSupportedImage(fileInfo.current) && (<div id="svgContainer" />)}
+            {fileInfo.current && (isFileExt(fileInfo.current.file.name,".fon") || isFileExt(fileInfo.current.file.name,".vlw")) && (<canvas id="rasterFont" width={800} height={300} style={{ width: "%100", height: "100%" }} />)}
+            {fileInfo.current && isTrueType(fileInfo.current.file.name) && (<span id="vectorFont" style={{ width: "800px", height: "300px" }} />)}
         </>
     );
 };
