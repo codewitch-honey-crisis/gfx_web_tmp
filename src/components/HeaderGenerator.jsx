@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import SyntaxHighlighter from 'react-syntax-highlighter';
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
+import clang from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
+import cpplang from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
 import { a11yDark,a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { generateStringLiteral, generateByteArrayLiteral, toIdentifier } from './CGen';
 import { tvgDimensions, tvgRender } from './TinyVG'
 import { fonLoad, fonMakeGlyph } from './FonFont';
 import { vlwLoad, vlwMakeGlyph } from './VlwFont';
 import './HeaderGenerator.css';
+
+SyntaxHighlighter.registerLanguage('c', clang);
+SyntaxHighlighter.registerLanguage('cpp', cpplang);
 
 const HeaderGenerator = () => {
     let downloadUrl = "";
@@ -20,6 +25,7 @@ const HeaderGenerator = () => {
     var fset;
     var funits;
     var iscale;
+
     const [fileInfo, setFileInfo] = useState("");
     const [ident, setIdent] = useState("");
     const [fontSet, setFontSet] = useState(0);
@@ -29,7 +35,6 @@ const HeaderGenerator = () => {
     const [imageScale, setImageScale] = useState("scale_1_1");
     const [imageDim, setImageDim] = useState("");
     const [genType, setGenType] = useState("C");
-    const [genContent, setGenContent] = useState(undefined)
     const [fileCache, setFileCache] = useState(undefined)
     const isBrowserDarkTheme = () => {
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -259,7 +264,6 @@ const HeaderGenerator = () => {
             idnt = e.target.value;
             setIdent(idnt);
             gencache = undefined;
-            setGenContent(undefined);
         }
     }
     const handleFontSetValueChange = (e) => {
@@ -270,9 +274,7 @@ const HeaderGenerator = () => {
         fset = n;
         setFontSet(fset);
         gencache = undefined;
-        setGenContent(undefined);
         previewFile();
-
     }
     const handleImageScaleChange = (e) => {
         let s = e.target.value;
@@ -282,7 +284,6 @@ const HeaderGenerator = () => {
         iscale = s;
         setImageScale(s);
         gencache = undefined;
-        setGenContent(undefined);
         previewFile();
     }
     const handleFontSizeValueChange = (e) => {
@@ -293,9 +294,7 @@ const HeaderGenerator = () => {
         fsize = n;
         setFontSize(n);
         gencache = undefined;
-        setGenContent(undefined);
         previewFile();
-
     }
     const handleFontSizeUnitChange = (e) => {
         let u = e.target.value;
@@ -303,7 +302,6 @@ const HeaderGenerator = () => {
             setFontSize(0);
             setFontUnits(u);
             gencache = undefined;
-            setGenContent(undefined);
             previewFile();
             return;
         }
@@ -314,9 +312,7 @@ const HeaderGenerator = () => {
         fsize = 0;
         setFontUnits(u);
         gencache = undefined;
-        setGenContent(undefined);
         previewFile();
-
     }
     const handleTypeChange = (e) => {
         gentype = e.target.value;
@@ -324,10 +320,7 @@ const HeaderGenerator = () => {
         iscale = "scale_1_1";
         setImageScale(iscale);
         gencache = undefined;
-        setGenContent(undefined);
-        
         previewFile();
-    
     }
 
     const readImageDimensions = async (data, isSvg = false) => {
@@ -370,8 +363,6 @@ const HeaderGenerator = () => {
                     reject();
                 }
             }
-
-
         });
     }
     const getCreatedTypeName = () => {
@@ -686,7 +677,6 @@ const HeaderGenerator = () => {
         setFontSize(undefined);
         setFontUnits(undefined);
         setFontSet(undefined);
-        setGenContent(undefined);
         if (isSupportedImage(fi) ||
             isSupportedFont(fi)
         ) {
@@ -695,7 +685,6 @@ const HeaderGenerator = () => {
                 filecache = evt.target.result;
                 setFileCache(filecache);
                 finfo = fi;
-                setGenContent(filecache);
                 previewFile();
             };
             reader.readAsArrayBuffer(inputFile.files[0]);
