@@ -768,7 +768,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
-                            {fileInfo.current && isSpecializedType(fileInfo.current) && genType.startsWith("G") && (
+                            {fileInfo.current && isSpecializedType(fileInfo.current,fontSize,fontUnits) && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Stream: </label></td>
                                     <td>
