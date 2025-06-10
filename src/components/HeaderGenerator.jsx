@@ -18,7 +18,6 @@ const HeaderGenerator = () => {
     var gentype;
     var imageDimensions;
     var fontLineHeight;
-    var filecache;
     var idnt;
     var fsize;
     var fset;
@@ -47,7 +46,7 @@ const HeaderGenerator = () => {
     const [imageScale, setImageScale] = useState("scale_1_1");
     const [imageDim, setImageDim] = useState("");
     const [genType, setGenType] = useState("C");
-    const [fileCache, setFileCache] = useState(undefined);
+    const fileCache = useRef(undefined);
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         useForceUpdate();
     });
@@ -516,13 +515,11 @@ const HeaderGenerator = () => {
         }
     }
     const previewFile = () => {
-        if ((!fileInfo.current) || (!filecache && !fileCache)) {
+        if ((!fileInfo.current) || (!fileCache.current)) {
             console.log("No gen info");
             return;
         }
-        if (!filecache) {
-            filecache = fileCache;
-        }
+        let fcache = fileCache.current;
         
         const finfo = fileInfo.current;
         if (!fsize) {
@@ -546,9 +543,9 @@ const HeaderGenerator = () => {
         }
         if (isSupportedImage(finfo)) {
             if (isFileExt(finfo.file.name,".tvg")) {
-                tvgRender("tinyvg", filecache);
+                tvgRender("tinyvg", fcache);
                 const pic = document.getElementById("tinyvg");
-                readImageDimensions(filecache, false).then((value) => {
+                readImageDimensions(fcache, false).then((value) => {
                     imageDimensions = value;
                     setImageDim(imageDimensions);
                     let w = imageDimensions.width;
@@ -561,9 +558,9 @@ const HeaderGenerator = () => {
                     console.log("Could not find svg container");
                 } else {
                     const decoder = new TextDecoder();
-                    const str = decoder.decode(filecache);
+                    const str = decoder.decode(fcache);
                     pic.innerHTML = str;
-                    readImageDimensions(filecache, true).then((value) => {
+                    readImageDimensions(fcache, true).then((value) => {
                         imageDimensions = value;
                         setImageDim(imageDimensions);
                         let w = imageDimensions.width;
@@ -576,10 +573,10 @@ const HeaderGenerator = () => {
                 if (!pic) {
                     console.log("Could not find picture");
                 } else {
-                    const blb = new Blob([filecache]);
+                    const blb = new Blob([fcache]);
                     const url = URL.createObjectURL(blb);
                     pic.src = url;
-                    readImageDimensions(filecache, isFileExt(finfo.file.name,".svg")).then((value) => {
+                    readImageDimensions(fcache, isFileExt(finfo.file.name,".svg")).then((value) => {
                         imageDimensions = value;
                         setImageDim(imageDimensions);
                         let w = imageDimensions.width;
@@ -609,7 +606,7 @@ const HeaderGenerator = () => {
                 }
             }
         } else if (isFileExt(finfo.file.name,".fon"))  {
-            const fon = fonLoad(filecache, fset);
+            const fon = fonLoad(fcache, fset);
             fontLineHeight = fon.lineHeight;
             setFontHeight(fontLineHeight);
             const cvs = document.getElementById("rasterFont");
@@ -626,7 +623,7 @@ const HeaderGenerator = () => {
                     "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz", 0, 0, 0xFF0FF0FF);
             }
         } else if(isFileExt(finfo.file.name,".vlw")) {
-            const vlw = vlwLoad(filecache);
+            const vlw = vlwLoad(fcache);
             fontLineHeight = vlw.lineHeight;
             setFontHeight(fontLineHeight);
             const cvs = document.getElementById("rasterFont");
@@ -645,7 +642,7 @@ const HeaderGenerator = () => {
             if (!spn) {
                 console.log("Couldn't find font container");
             } else {
-                const blb = new Blob([filecache]);
+                const blb = new Blob([fcache]);
                 if (!idnt) {
                     idnt = ident;
                 }
@@ -674,7 +671,7 @@ const HeaderGenerator = () => {
     }
     const onDropFiles = (e) => {
         e.preventDefault();
-        filecache = undefined;
+        fileCache.current=undefined;
         const inputFile = document.getElementById("file");
         inputFile.files = e.dataTransfer.files;
         const fi = { file: e.dataTransfer.files[0], type: e.dataTransfer.files[0].type };
@@ -690,8 +687,7 @@ const HeaderGenerator = () => {
         ) {
             let reader = new FileReader();
             reader.onload = async function (evt) {
-                filecache = evt.target.result;
-                setFileCache(filecache);
+                fileCache.current = evt.target.result;
                 previewFile();
             };
             reader.readAsArrayBuffer(inputFile.files[0]);
