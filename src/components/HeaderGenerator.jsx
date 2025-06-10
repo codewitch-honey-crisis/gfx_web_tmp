@@ -69,7 +69,21 @@ const toUtf32 = function* (str) {
         yield cp;
     }
 }
-const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex, size, units, outputType, data) => {
+const isSpecializedType = (fileInfo, size, units) => {
+    if (isFileExt(fileInfo.file.name,".fon")) {
+        return true;
+    } else if (fileInfo.type === "image/jpeg") {
+        return true;
+    } else if (fileInfo.type === "image/png") {
+        return true;
+    } else if (isFileExt(fileInfo.file.name, ".vlw")) {
+        return true;
+    } else if (isTrueType(fileInfo.file.name) && size && !isNaN(size) && size != 0 && units) {
+        return true;
+    }
+    return false;
+}
+const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex, size, units, exposeStream, outputType, data) => {
     let result = "";
     if (imageScale === undefined || imageScale === "") {
         imageScale = "scale_1_1";
@@ -157,6 +171,9 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
             }
             result += `extern gfx::const_buffer_stream ${identifier};\r\n`;
         }
+        if(exposeStream && isSpecialized) {
+            result += `extern gfx::const_buffer_stream ${identifier}_stream;\r\n`;
+        }
     } else {
         if (istext) {
             if (data) {
@@ -186,7 +203,7 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
         } else {
             result += generateByteArrayLiteral(identifier + "_data", data, true) + "\r\n\r\n";
         }
-        if (isSpecialized) {
+        if (isSpecialized && !exposeStream) {
             result += `static gfx::const_buffer_stream ${identifier}_stream\r\n    (${identifier}_data, sizeof(${identifier}_data));\r\n`;
         }
         if (isFon) {
@@ -219,6 +236,9 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
                 result += `gfx::const_buffer_stream ${identifier}\r\n    (${identifier}_data, sizeof(${identifier}_data));\r\n`;
             }
         }
+        if(isSpecialized && exposeStream) {
+            result += `gfx::const_buffer_stream ${identifier}_stream\r\n    (${identifier}_data, sizeof(${identifier}_data));\r\n`;
+        }
     } else {
         if (istext) {
             result += generateStringLiteral(identifier, data, false) + "\r\n";
@@ -247,6 +267,7 @@ const HeaderGenerator = () => {
 
     let gencache;
     let gentype;
+    let stm;
     let imageDimensions;
     let fontLineHeight;
     let idnt;
@@ -272,6 +293,7 @@ const HeaderGenerator = () => {
     const [imageScale, setImageScale] = useState("scale_1_1");
     const [imageDim, setImageDim] = useState("");
     const [genType, setGenType] = useState("C");
+    const [exposeStream,setExposeStream] = useState(false);
 
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
@@ -347,7 +369,12 @@ const HeaderGenerator = () => {
         gencache = undefined;
         previewFile();
     }
-
+    const handleStreamChange = (e) => {
+        stm = e.target.checked;
+        console.log("Stream change: "+stm);
+        setExposeStream(stm);
+        gencache = undefined;
+    }
     const readImageDimensions = async (data, isSvg = false) => {
         return new Promise((resolve, reject) => {
             if (!isSvg) {
@@ -427,7 +454,7 @@ const HeaderGenerator = () => {
             reader.readAsArrayBuffer(fileInfo.current.file);
             reader.onload = async function (evt) {
                 console.log("generating content to clipboard");
-                gencache = generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, evt.target.result);
+                gencache = generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, exposeStream, genType, evt.target.result);
                 await navigator.clipboard.writeText(gencache);
             }
         } else if (gencache) {
@@ -462,7 +489,7 @@ const HeaderGenerator = () => {
             reader.readAsArrayBuffer(fileInfo.current.file);
             reader.onload = function (evt) {
                 console.log("generating content to file");
-                gencache = generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, evt.target.result);
+                gencache = generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, exposeStream, genType, evt.target.result);
                 setGeneratedFileUrl();
             }
         } else if (gencache) {
@@ -741,6 +768,14 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
+                            {fileInfo.current && isSpecializedType(fileInfo.current) && genType.startsWith("G") && (
+                                <tr>
+                                    <td><label>Stream: </label></td>
+                                    <td>
+                                        <input type="checkbox" onChange={handleStreamChange} />
+                                    </td>
+                                </tr>
+                            )}
                             {fileInfo.current && fileInfo.current.file.type == "image/jpeg" && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Scale: </label></td>
@@ -788,7 +823,7 @@ const HeaderGenerator = () => {
                 )}
             </div><br />
             {fileInfo.current && (<><h4>Preview</h4></>) && (<>
-                {ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
+                {ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, exposeStream, genType, undefined)}</SyntaxHighlighter>)}
                 {isFileExt(fileInfo.current.file.name, ".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
                 {!isFileExt(fileInfo.current.file.name, ".tvg") && !isFileExt(fileInfo.current.file.name, ".svg") && isSupportedImage(fileInfo.current) && (<img id="picture" onLoad={revokePicture()} />)}
                 {isFileExt(fileInfo.current.file.name, ".svg") && isSupportedImage(fileInfo.current) && (<div id="svgContainer" />)}
