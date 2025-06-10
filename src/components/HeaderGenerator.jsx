@@ -9,10 +9,10 @@ import { fonLoad, fonMakeGlyph } from './FonFont';
 import { vlwLoad, vlwMakeGlyph } from './VlwFont';
 import './HeaderGenerator.css';
 
-SyntaxHighlighter.registerLanguage('c', clang);
-SyntaxHighlighter.registerLanguage('cpp', cpplang);
-
 const HeaderGenerator = () => {
+    SyntaxHighlighter.registerLanguage('c', clang);
+    SyntaxHighlighter.registerLanguage('cpp', cpplang);
+    
     let downloadUrl = "";
     var gencache;
     var gentype;
@@ -436,7 +436,7 @@ const HeaderGenerator = () => {
         alink.click();
     }
     const revokePicture = () => {
-        setTimeout(function () { URL.revokeObjectURL(document.getElementById("picture").src); }, 10000);
+        setTimeout(function () { try {URL.revokeObjectURL(document.getElementById("picture").src);} catch {console.log("couldn't revoke url");} }, 1000);
     }
 
     const generateContentFile = () => {
