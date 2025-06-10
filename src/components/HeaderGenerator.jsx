@@ -13,7 +13,6 @@ const HeaderGenerator = () => {
     SyntaxHighlighter.registerLanguage('c', clang);
     SyntaxHighlighter.registerLanguage('cpp', cpplang);
     
-    let downloadUrl = "";
     var gencache;
     var gentype;
     var imageDimensions;
@@ -39,6 +38,7 @@ const HeaderGenerator = () => {
     
     const fileInfo = useRef("");
     const fileCache = useRef(undefined);
+    const  downloadUrl = useRef("");
     const [ident, setIdent] = useState("");
     const [fontSet, setFontSet] = useState(0);
     const [fontHeight, setFontHeight] = useState(0);
@@ -47,6 +47,7 @@ const HeaderGenerator = () => {
     const [imageScale, setImageScale] = useState("scale_1_1");
     const [imageDim, setImageDim] = useState("");
     const [genType, setGenType] = useState("C");
+    
     
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         useForceUpdate();
@@ -425,15 +426,17 @@ const HeaderGenerator = () => {
         // due to the on the fly generate+download in one click feature. It's a bit kludgy but
         // it works
         const blb = new Blob([gencache], { type: "text/plain" });
-        if (downloadUrl != undefined && downloadUrl.length > 0) {
-            URL.revokeObjectURL(downloadUrl);
+        if (downloadUrl.current != undefined && downloadUrl.current.length > 0) {
+            URL.revokeObjectURL(downloadUrl.current);
+            downloadUrl.current="";
         }
-        downloadUrl = URL.createObjectURL(blb);
+        downloadUrl.current = URL.createObjectURL(blb);
 
         const alink = document.createElement("a");
         alink.download = getDownloadName(ident, genType);
-        alink.href = downloadUrl;
+        alink.href = downloadUrl.current;
         alink.click();
+        setTimeout(()=>{if(downloadUrl.current && downloadUrl.current.length>0) {URL.revokeObjectURL(downloadUrl.current),downloadUrl.current="";}},500);
     }
     const revokePicture = () => {
         setTimeout(function () { try {URL.revokeObjectURL(document.getElementById("picture").src);} catch {console.log("couldn't revoke url");} }, 1000);
