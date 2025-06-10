@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import clang from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
 import cpplang from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
-import { a11yDark,a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
+import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { generateStringLiteral, generateByteArrayLiteral, toIdentifier } from './CGen';
 import { tvgDimensions, tvgRender } from './TinyVG'
 import { fonLoad, fonMakeGlyph } from './FonFont';
@@ -17,7 +17,7 @@ const isBrowserDarkTheme = () => {
 const isText = (type) => {
     return (type.endsWith("/json") || type.endsWith("/xml") || type.endsWith("+xml") || type.startsWith("text/"));
 }
-const isFileExt = (name,cmp) => {
+const isFileExt = (name, cmp) => {
     return (name && name.toLowerCase().endsWith(cmp.toLowerCase()));
 }
 const isSupportedImage = (fileinfo) => {
@@ -31,7 +31,7 @@ const isSupportedImage = (fileinfo) => {
     }
 }
 const isSupportedFont = (fileInfo) => {
-    return isFileExt(fileInfo.file.name,".vlw") || isFileExt(fileInfo.file.name,".fon") ||
+    return isFileExt(fileInfo.file.name, ".vlw") || isFileExt(fileInfo.file.name, ".fon") ||
         isTrueType(fileInfo.file.name);
 }
 const jpgScaleDim = (dim, scale) => {
@@ -113,12 +113,12 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
         isSpecialized = true;
     } else if (fileType === "image/svg+xml") {
         isSvg = true;
-    } else if (isFileExt(fileName,".tvg")) {
+    } else if (isFileExt(fileName, ".tvg")) {
         isTvg = true;
     } else if (fileType === "image/png") {
         isPng = true;
         isSpecialized = true;
-    } else if (isFileExt(fileName,".vlw")) {
+    } else if (isFileExt(fileName, ".vlw")) {
         isVlw = true;
         isSpecialized = true;
     } else if (isTrueType(fileName) && size && !isNaN(size) && size != 0 && units) {
@@ -244,7 +244,7 @@ const getGeneratedLanguage = (genType) => {
 const HeaderGenerator = () => {
     SyntaxHighlighter.registerLanguage('c', clang);
     SyntaxHighlighter.registerLanguage('cpp', cpplang);
-    
+
     let gencache;
     let gentype;
     let imageDimensions;
@@ -254,16 +254,16 @@ const HeaderGenerator = () => {
     let fset;
     let funits;
     let iscale;
-    
-    const [syntaxTheme, setSyntaxTheme] = useState(isBrowserDarkTheme()?a11yDark:a11yLight);
-    
-    function useForceUpdate(){
-        setSyntaxTheme(isBrowserDarkTheme()? a11yDark:a11yLight)
+
+    const [syntaxTheme, setSyntaxTheme] = useState(isBrowserDarkTheme() ? a11yDark : a11yLight);
+
+    function useForceUpdate() {
+        setSyntaxTheme(isBrowserDarkTheme() ? a11yDark : a11yLight)
     }
-    
+
     const fileInfo = useRef("");
     const fileCache = useRef(undefined);
-    const  downloadUrl = useRef("");
+    const downloadUrl = useRef("");
     const [ident, setIdent] = useState("");
     const [fontSet, setFontSet] = useState(0);
     const [fontHeight, setFontHeight] = useState(0);
@@ -272,15 +272,15 @@ const HeaderGenerator = () => {
     const [imageScale, setImageScale] = useState("scale_1_1");
     const [imageDim, setImageDim] = useState("");
     const [genType, setGenType] = useState("C");
-    
-    
+
+
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         useForceUpdate();
     });
-    
-   
+
+
     const handleFileChange = (e) => {
-        fileInfo.current=({ file: e.target.files[0], type: e.target.files[0].type });
+        fileInfo.current = ({ file: e.target.files[0], type: e.target.files[0].type });
         setIdent(toIdentifier(e.target.files[0].name));
         gencache = undefined;
     };
@@ -403,13 +403,13 @@ const HeaderGenerator = () => {
             const fileName = fileInfo.current.file.name;
             const size = fontSize;
             const units = fontUnits;
-            if (fileType === undefined || fileType === "" && isFileExt(fileName,".fon")) {
+            if (fileType === undefined || fileType === "" && isFileExt(fileName, ".fon")) {
                 return "gfx::win_font";
             } else if (fileType === "image/jpeg") {
                 return "gfx::jpg_image";
             } else if (fileType === "image/png") {
                 return "gfx::png_image";
-            } else if (isFileExt(fileName,".vlw")) {
+            } else if (isFileExt(fileName, ".vlw")) {
                 return "gfx::vlw_font";
             } else if (isTrueType(fileName) && size && !isNaN(size) && size != 0 && units) {
                 return "gfx::ttf_font";
@@ -442,7 +442,7 @@ const HeaderGenerator = () => {
         const blb = new Blob([gencache], { type: "text/plain" });
         if (downloadUrl.current != undefined && downloadUrl.current.length > 0) {
             URL.revokeObjectURL(downloadUrl.current);
-            downloadUrl.current="";
+            downloadUrl.current = "";
         }
         downloadUrl.current = URL.createObjectURL(blb);
 
@@ -450,10 +450,10 @@ const HeaderGenerator = () => {
         alink.download = getDownloadName(ident, genType);
         alink.href = downloadUrl.current;
         alink.click();
-        setTimeout(()=>{if(downloadUrl.current && downloadUrl.current.length>0) {URL.revokeObjectURL(downloadUrl.current),downloadUrl.current="";}},500);
+        setTimeout(() => { if (downloadUrl.current && downloadUrl.current.length > 0) { URL.revokeObjectURL(downloadUrl.current), downloadUrl.current = ""; } }, 500);
     }
     const revokePicture = () => {
-        setTimeout(function () { try {URL.revokeObjectURL(document.getElementById("picture").src);} catch {console.log("couldn't revoke url");} }, 1000);
+        setTimeout(function () { try { URL.revokeObjectURL(document.getElementById("picture").src); } catch { console.log("couldn't revoke url"); } }, 1000);
     }
 
     const generateContentFile = () => {
@@ -522,7 +522,7 @@ const HeaderGenerator = () => {
             return;
         }
         let fcache = fileCache.current;
-        
+
         const finfo = fileInfo.current;
         if (!fsize) {
             fsize = fontSize;
@@ -536,15 +536,15 @@ const HeaderGenerator = () => {
         if (!fset) {
             fset = fontSet;
         }
-        if(!gentype) {
-            if(!genType) {
-                gentype="C";
+        if (!gentype) {
+            if (!genType) {
+                gentype = "C";
             } else {
                 gentype = genType;
             }
         }
         if (isSupportedImage(finfo)) {
-            if (isFileExt(finfo.file.name,".tvg")) {
+            if (isFileExt(finfo.file.name, ".tvg")) {
                 tvgRender("tinyvg", fcache);
                 const pic = document.getElementById("tinyvg");
                 readImageDimensions(fcache, false).then((value) => {
@@ -554,7 +554,7 @@ const HeaderGenerator = () => {
                     let h = imageDimensions.height;
                     pic.style = `width: ${w}px; height: ${h}px`;
                 });
-            } else if (isFileExt(finfo.file.name,".svg")) {
+            } else if (isFileExt(finfo.file.name, ".svg")) {
                 const pic = document.getElementById("svgContainer");
                 if (!pic) {
                     console.log("Could not find svg container");
@@ -578,16 +578,16 @@ const HeaderGenerator = () => {
                     const blb = new Blob([fcache]);
                     const url = URL.createObjectURL(blb);
                     pic.src = url;
-                    readImageDimensions(fcache, isFileExt(finfo.file.name,".svg")).then((value) => {
+                    readImageDimensions(fcache, isFileExt(finfo.file.name, ".svg")).then((value) => {
                         imageDimensions = value;
                         setImageDim(imageDimensions);
                         let w = imageDimensions.width;
                         let h = imageDimensions.height;
-                        if (isFileExt(finfo.file.name,".jpg") && iscale) {
-                            if(gentype && gentype.startsWith("G")) {
-                                const dim = jpgScaleDim({width: w, height: h},iscale);
-                                w=dim.width;
-                                h=dim.height;
+                        if (isFileExt(finfo.file.name, ".jpg") && iscale) {
+                            if (gentype && gentype.startsWith("G")) {
+                                const dim = jpgScaleDim({ width: w, height: h }, iscale);
+                                w = dim.width;
+                                h = dim.height;
                             }
                         }
                         pic.width = w;
@@ -596,8 +596,8 @@ const HeaderGenerator = () => {
 
                 }
             }
-        } else if (isFileExt(finfo.file.name,".fon"))  {
-            
+        } else if (isFileExt(finfo.file.name, ".fon")) {
+
             let fon;
             const cvs = document.getElementById("rasterFont");
             if (!cvs) {
@@ -610,13 +610,13 @@ const HeaderGenerator = () => {
             catch {
                 console.log("Couldn't load font");
                 const ctx = cvs.getContext("2d");
-                ctx.clearRect(0, 0, cvs.width, cvs.height);    
+                ctx.clearRect(0, 0, cvs.width, cvs.height);
                 return;
             }
-            
+
             fontLineHeight = fon.lineHeight;
             setFontHeight(fontLineHeight);
-        
+
             cvs.width = cvs.offsetWidth;
             cvs.height = cvs.offsetHeight;
 
@@ -625,8 +625,8 @@ const HeaderGenerator = () => {
 
             drawFonString(ctx, fon,
                 "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz", 0, 0, 0xFF0FF0FF);
-        
-        } else if(isFileExt(finfo.file.name,".vlw")) {
+
+        } else if (isFileExt(finfo.file.name, ".vlw")) {
             const vlw = vlwLoad(fcache);
             fontLineHeight = vlw.lineHeight;
             setFontHeight(fontLineHeight);
@@ -675,11 +675,11 @@ const HeaderGenerator = () => {
     }
     const onDropFiles = (e) => {
         e.preventDefault();
-        fileCache.current=undefined;
+        fileCache.current = undefined;
         const inputFile = document.getElementById("file");
         inputFile.files = e.dataTransfer.files;
         const fi = { file: e.dataTransfer.files[0], type: e.dataTransfer.files[0].type };
-        fileInfo.current=fi;
+        fileInfo.current = fi;
         setIdent(toIdentifier(e.dataTransfer.files[0].name));
 
         setImageScale(undefined); // set this back so it doesn't accidentally get set to something other than the default
@@ -720,7 +720,7 @@ const HeaderGenerator = () => {
                             <tr>
                                 <td><label>Identifier: </label></td><td><input type="text" id="identifier" value={ident} onChange={handleIdentChange} /></td>
                             </tr>
-                            {fileInfo.current && isFileExt(fileInfo.current.file.name,".fon") && genType.startsWith("G") && (
+                            {fileInfo.current && isFileExt(fileInfo.current.file.name, ".fon") && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Set Index: </label></td>
                                     <td>
@@ -788,12 +788,12 @@ const HeaderGenerator = () => {
                 )}
             </div><br />
             {fileInfo.current && (<><h4>Preview</h4></>) && (<>
-            {ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
-            {isFileExt(fileInfo.current.file.name,".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
-            {!isFileExt(fileInfo.current.file.name,".tvg") && !isFileExt(fileInfo.current.file.name,".svg") && isSupportedImage(fileInfo.current) && (<img id="picture" onLoad={revokePicture()} />)}
-            {isFileExt(fileInfo.current.file.name,".svg") && isSupportedImage(fileInfo.current) && (<div id="svgContainer" />)}
-            {(isFileExt(fileInfo.current.file.name,".fon") || isFileExt(fileInfo.current.file.name,".vlw")) && (<canvas id="rasterFont" width={800} height={300} style={{ width: "%100", height: "100%" }} />)}
-            {isTrueType(fileInfo.current.file.name) && (<span id="vectorFont" style={{ width: "800px", height: "300px" }} />)}
+                {ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
+                {isFileExt(fileInfo.current.file.name, ".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
+                {!isFileExt(fileInfo.current.file.name, ".tvg") && !isFileExt(fileInfo.current.file.name, ".svg") && isSupportedImage(fileInfo.current) && (<img id="picture" onLoad={revokePicture()} />)}
+                {isFileExt(fileInfo.current.file.name, ".svg") && isSupportedImage(fileInfo.current) && (<div id="svgContainer" />)}
+                {(isFileExt(fileInfo.current.file.name, ".fon") || isFileExt(fileInfo.current.file.name, ".vlw")) && (<canvas id="rasterFont" width={800} height={300} style={{ width: "%100", height: "100%" }} />)}
+                {isTrueType(fileInfo.current.file.name) && (<span id="vectorFont" style={{ width: "800px", height: "300px" }} />)}
             </>)}
         </>
     );
