@@ -25,7 +25,21 @@ const HeaderGenerator = () => {
     var fset;
     var funits;
     var iscale;
-
+    const isBrowserDarkTheme = () => {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return true;
+        }
+        return false;
+    }
+    const [syntaxTheme, setSyntaxTheme] = useState(isBrowserDarkTheme()?a11yDark:a11yLight);
+    
+    function useForceUpdate(){
+        setSyntaxTheme(isBrowserDarkTheme()? a11yDark:a11yLight)
+        return () => setDoRefresh(doRefresh => doRefresh + 1); // update state to force render
+        // A function that increment 👆🏻 the previous state like here 
+        // is better than directly setting `setValue(value + 1)`
+    }
+    
     const [fileInfo, setFileInfo] = useState("");
     const [ident, setIdent] = useState("");
     const [fontSet, setFontSet] = useState(0);
@@ -35,13 +49,11 @@ const HeaderGenerator = () => {
     const [imageScale, setImageScale] = useState("scale_1_1");
     const [imageDim, setImageDim] = useState("");
     const [genType, setGenType] = useState("C");
-    const [fileCache, setFileCache] = useState(undefined)
-    const isBrowserDarkTheme = () => {
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return true;
-        }
-        return false;
-    }
+    const [fileCache, setFileCache] = useState(undefined);
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+        useForceUpdate();
+    });
+    
     const isText = (type) => {
         return (type.endsWith("/json") || type.endsWith("/xml") || type.endsWith("+xml") || type.startsWith("text/"));
     }
@@ -778,7 +790,7 @@ const HeaderGenerator = () => {
                 )}
             </div><br />
             {fileInfo && (<><h4>Preview</h4></>)}
-            {fileInfo && ident && ident.length > 0 && (<SyntaxHighlighter style={isBrowserDarkTheme()? a11yDark:a11yLight} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
+            {fileInfo && ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
             {fileInfo && isFileExt(fileInfo.file.name,".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
             {fileInfo && !isFileExt(fileInfo.file.name,".tvg") && !isFileExt(fileInfo.file.name,".svg") && isSupportedImage(fileInfo) && (<img id="picture" onLoad={revokePicture()} />)}
             {fileInfo && isFileExt(fileInfo.file.name,".svg") && isSupportedImage(fileInfo) && (<div id="svgContainer" />)}
