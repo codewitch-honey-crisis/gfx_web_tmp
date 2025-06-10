@@ -198,7 +198,7 @@ const HeaderGenerator = () => {
                 result += `static gfx::const_buffer_stream ${identifier}_stream\r\n    (${identifier}_data, sizeof(${identifier}_data));\r\n`;
             }
             if (isFon) {
-                if (fontSetIndex != 0) {
+                if (fontSetIndex && fontSetIndex != 0) {
                     result += `gfx::win_font ${identifier}\r\n    (${identifier}_stream, ${fontSetIndex});\r\n`;
                 } else {
                     result += `gfx::win_font ${identifier}\r\n    (${identifier}_stream);\r\n`;
@@ -206,7 +206,7 @@ const HeaderGenerator = () => {
             } else if (isVlw) {
                 result += `gfx::vlw_font ${identifier}\r\n    (${identifier}_stream);\r\n`;
             } else if (isJpg) {
-                if (imageScale != "scale_1_1") {
+                if (imageScale && imageScale != "scale_1_1") {
                     result += `gfx::jpg_image ${identifier}\r\n    (${identifier}_stream, jpg_scale::${imageScale});\r\n`;
                 } else {
                     result += `gfx::jpg_image ${identifier}\r\n    (${identifier}_stream);\r\n`;
