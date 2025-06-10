@@ -38,6 +38,7 @@ const HeaderGenerator = () => {
     }
     
     const fileInfo = useRef("");
+    const fileCache = useRef(undefined);
     const [ident, setIdent] = useState("");
     const [fontSet, setFontSet] = useState(0);
     const [fontHeight, setFontHeight] = useState(0);
@@ -46,7 +47,7 @@ const HeaderGenerator = () => {
     const [imageScale, setImageScale] = useState("scale_1_1");
     const [imageDim, setImageDim] = useState("");
     const [genType, setGenType] = useState("C");
-    const fileCache = useRef(undefined);
+    
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         useForceUpdate();
     });
@@ -583,20 +584,9 @@ const HeaderGenerator = () => {
                         let h = imageDimensions.height;
                         if (isFileExt(finfo.file.name,".jpg") && iscale) {
                             if(gentype && gentype.startsWith("G")) {
-                                switch (iscale) {
-                                    case "scale_1_2":
-                                        w /= 2;
-                                        h /= 2;
-                                        break;
-                                    case "scale_1_4":
-                                        w /= 4;
-                                        h /= 4;
-                                        break;
-                                    case "scale_1_8":
-                                        w /= 8;
-                                        h /= 8;
-                                        break;
-                                }
+                                const dim = jpgScaleDim({width: w, height: h},iscale);
+                                w=dim.width;
+                                h=dim.height;
                             }
                         }
                         pic.width = w;
