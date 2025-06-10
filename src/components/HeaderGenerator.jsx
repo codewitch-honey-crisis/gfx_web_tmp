@@ -787,13 +787,14 @@ const HeaderGenerator = () => {
                     </>
                 )}
             </div><br />
-            {fileInfo.current && (<><h4>Preview</h4></>)}
-            {fileInfo.current && ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
-            {fileInfo.current && isFileExt(fileInfo.current.file.name,".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
-            {fileInfo.current && !isFileExt(fileInfo.current.file.name,".tvg") && !isFileExt(fileInfo.current.file.name,".svg") && isSupportedImage(fileInfo.current) && (<img id="picture" onLoad={revokePicture()} />)}
-            {fileInfo.current && isFileExt(fileInfo.current.file.name,".svg") && isSupportedImage(fileInfo.current) && (<div id="svgContainer" />)}
-            {fileInfo.current && (isFileExt(fileInfo.current.file.name,".fon") || isFileExt(fileInfo.current.file.name,".vlw")) && (<canvas id="rasterFont" width={800} height={300} style={{ width: "%100", height: "100%" }} />)}
-            {fileInfo.current && isTrueType(fileInfo.current.file.name) && (<span id="vectorFont" style={{ width: "800px", height: "300px" }} />)}
+            {fileInfo.current && (<><h4>Preview</h4></>) && (<>
+            {ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, genType, undefined)}</SyntaxHighlighter>)}
+            {isFileExt(fileInfo.current.file.name,".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
+            {!isFileExt(fileInfo.current.file.name,".tvg") && !isFileExt(fileInfo.current.file.name,".svg") && isSupportedImage(fileInfo.current) && (<img id="picture" onLoad={revokePicture()} />)}
+            {isFileExt(fileInfo.current.file.name,".svg") && isSupportedImage(fileInfo.current) && (<div id="svgContainer" />)}
+            {(isFileExt(fileInfo.current.file.name,".fon") || isFileExt(fileInfo.current.file.name,".vlw")) && (<canvas id="rasterFont" width={800} height={300} style={{ width: "%100", height: "100%" }} />)}
+            {isTrueType(fileInfo.current.file.name) && (<span id="vectorFont" style={{ width: "800px", height: "300px" }} />)}
+            </>)}
         </>
     );
 };
