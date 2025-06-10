@@ -35,7 +35,6 @@ const HeaderGenerator = () => {
     
     function useForceUpdate(){
         setSyntaxTheme(isBrowserDarkTheme()? a11yDark:a11yLight)
-        return () => setDoRefresh(doRefresh => doRefresh + 1); // update state to force render
         // A function that increment 👆🏻 the previous state like here 
         // is better than directly setting `setValue(value + 1)`
     }
