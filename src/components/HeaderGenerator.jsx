@@ -371,7 +371,6 @@ const HeaderGenerator = () => {
     }
     const handleStreamChange = (e) => {
         stm = e.target.checked;
-        console.log("Stream change: "+stm);
         setExposeStream(stm);
         gencache = undefined;
     }
@@ -708,7 +707,6 @@ const HeaderGenerator = () => {
         const fi = { file: e.dataTransfer.files[0], type: e.dataTransfer.files[0].type };
         fileInfo.current = fi;
         setIdent(toIdentifier(e.dataTransfer.files[0].name));
-
         setImageScale(undefined); // set this back so it doesn't accidentally get set to something other than the default
         setFontSize(undefined);
         setFontUnits(undefined);
