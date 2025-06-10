@@ -735,6 +735,7 @@ const HeaderGenerator = () => {
                             <tr>
                                 <td colSpan={2}><input id="file" type="file" onChange={handleFileChange} /></td>
                             </tr>
+                            {fileInfo.current && (<>
                             <tr>
                                 <td><label>Output:</label></td>
                                 <td>
@@ -747,7 +748,7 @@ const HeaderGenerator = () => {
                             <tr>
                                 <td><label>Identifier: </label></td><td><input type="text" id="identifier" value={ident} onChange={handleIdentChange} /></td>
                             </tr>
-                            {fileInfo.current && isFileExt(fileInfo.current.file.name, ".fon") && genType.startsWith("G") && (
+                            {isFileExt(fileInfo.current.file.name, ".fon") && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Set Index: </label></td>
                                     <td>
@@ -755,7 +756,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
-                            {fileInfo.current && isTrueType(fileInfo.current.file.name) && genType.startsWith("G") && (
+                            {isTrueType(fileInfo.current.file.name) && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Size: </label></td>
                                     <td>
@@ -768,7 +769,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
-                            {fileInfo.current && isSpecializedType(fileInfo.current,fontSize,fontUnits) && genType.startsWith("G") && (
+                            {isSpecializedType(fileInfo.current,fontSize,fontUnits) && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Stream: </label></td>
                                     <td>
@@ -776,7 +777,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
-                            {fileInfo.current && fileInfo.current.file.type == "image/jpeg" && genType.startsWith("G") && (
+                            {fileInfo.current.file.type == "image/jpeg" && genType.startsWith("G") && (
                                 <tr>
                                     <td><label>Scale: </label></td>
                                     <td>
@@ -789,6 +790,7 @@ const HeaderGenerator = () => {
                                     </td>
                                 </tr>
                             )}
+                            </>)}
                         </tbody>
                     </table>
                 </div>
@@ -796,6 +798,7 @@ const HeaderGenerator = () => {
                     <section>
                         File details:
                         <ul>
+                            {fileInfo.current && (<>
                             {fileInfo.current.file.type && (
                                 <li>MIME: <span className="fileType">{fileInfo.current.file.type}</span></li>)}
                             {isSupportedImage(fileInfo.current) && imageDim && (
@@ -805,6 +808,7 @@ const HeaderGenerator = () => {
                             )}
                             <li>Size: <span className="fileSize">{fileInfo.current.file.size} bytes</span></li>
                             <li>Type: <span className="genType">{getCreatedTypeName()}</span></li>
+                            </>)}
                         </ul>
 
                     </section>
