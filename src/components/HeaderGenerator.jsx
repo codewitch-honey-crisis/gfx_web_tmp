@@ -761,6 +761,9 @@ const HeaderGenerator = () => {
                                 <li>MIME: <span className="fileType">{fileInfo.current.file.type}</span></li>)}
                             {isSupportedImage(fileInfo.current) && imageDim && (
                                 <li>Dimensions: <span className="fileDim">{imageDim.width}x{imageDim.height}</span></li>)}
+                            {isSupportedFont(fileInfo.current) && !isTrueType(fileInfo.current.file.name) && fontHeight && (
+                                <li>Line Height: <span className="fontHeight">{fontHeight}</span></li>
+                            )}
                             <li>Size: <span className="fileSize">{fileInfo.current.file.size} bytes</span></li>
                             <li>Type: <span className="genType">{getCreatedTypeName()}</span></li>
                         </ul>
