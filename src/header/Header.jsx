@@ -1,13 +1,13 @@
 import '../App.css';
-
-import HeaderGenerator from '../components/HeaderGenerator.jsx';
-
+import { lazy, Suspense } from 'react';
+const HeaderGenerator = lazy(() => import('../components/HeaderGenerator.jsx'));
 function Header() {
   return (
     <>
       <h2>GFX header file generator</h2>
-
-        <HeaderGenerator />
+        <Suspense fallback={<span>Loading...</span>}>
+            <HeaderGenerator />
+        </Suspense>
     </>
   );
 }
