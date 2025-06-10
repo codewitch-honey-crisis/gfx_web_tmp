@@ -99,7 +99,7 @@ const tvgReadCoord = (ctx) => {
 const tvgReadU32 = (ctx) => {
     let count = 0;
     let result = 0;
-    var byte;
+    let byte;
     while (true) {
         byte = ctx.view.getUint8(ctx.cursor++);
         const val = (byte & 0x7F) << (7 * count);
@@ -197,7 +197,7 @@ const tvgParseLineHeader = (ctx, kind) => {
 
 const tvgParseLineFillHeader = (ctx, kind) => {
 
-    var d = ctx.view.getUint8(ctx.cursor++);
+    let d = ctx.view.getUint8(ctx.cursor++);
     const size = (d & 0x3F) + 1;
     const fill_style = tvgParseStyle(ctx, kind);
     const line_style = tvgParseStyle(ctx, (d >>> 6) & 0x03);
@@ -205,11 +205,11 @@ const tvgParseLineFillHeader = (ctx, kind) => {
     return { size: size, fill_style: fill_style, line_style: line_style, line_width: line_width };
 }
 const tvgParsePathD = (ctx, size) => {
-    var st, cur;
-    var pt;
-    var u32;
-    var f32;
-    var d;
+    let st, cur;
+    let pt;
+    let u32;
+    let f32;
+    let d;
     let result = "";
     pt = tvgReadPoint(ctx);
     result += `M${pt.x} ${pt.y}`;
@@ -307,7 +307,7 @@ const tvgAddSvgAttribute = (n, a, v) => {
 }
 const tvgCreateSvgGradient = (ctx, style) => {
     let da = ctx.doc.getElementsByTagNameNS("http://www.w3.org/2000/svg", "defs");
-    var defs;
+    let defs;
     if (da.length == 0) {
         defs = tvgCreateSvgNode("defs");
         ctx.doc.prepend(defs);

@@ -11,11 +11,11 @@ export const generateText = (data, startSpacing = 0) => {
     if(data) {
         const view = new DataView(data);
         let j = startSpacing;
-        for (var i = 0; i < view.byteLength; i++) {
+        for (let i = 0; i < view.byteLength; i++) {
             if (i > 0 && 0 === (j % 80) && i < view.byteLength - 1) {
                 result += "\"\r\n    \"";
             }
-            var charcode = view.getUint8(i);
+            let charcode = view.getUint8(i);
             if (charcode < 0x80) {
                 const ch = String.fromCharCode(charcode);
                 switch (ch) {

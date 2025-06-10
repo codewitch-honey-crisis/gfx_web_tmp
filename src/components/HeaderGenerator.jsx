@@ -13,15 +13,15 @@ const HeaderGenerator = () => {
     SyntaxHighlighter.registerLanguage('c', clang);
     SyntaxHighlighter.registerLanguage('cpp', cpplang);
     
-    var gencache;
-    var gentype;
-    var imageDimensions;
-    var fontLineHeight;
-    var idnt;
-    var fsize;
-    var fset;
-    var funits;
-    var iscale;
+    let gencache;
+    let gentype;
+    let imageDimensions;
+    let fontLineHeight;
+    let idnt;
+    let fsize;
+    let fset;
+    let funits;
+    let iscale;
     const isBrowserDarkTheme = () => {
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             return true;
@@ -117,7 +117,7 @@ const HeaderGenerator = () => {
             result += "#include <stdint.h>\r\n";
         }
 
-        var imgSize;
+        let imgSize;
         if (imageDim && imageDim.width && imageDim.height && imageDim.width > 0 && imageDim.height > 0) {
             imgSize = imageDim;
         }
@@ -354,7 +354,7 @@ const HeaderGenerator = () => {
                     img.src = imgsrc;
                 }
             } else {
-                var decoder = new TextDecoder('utf-8');
+                let decoder = new TextDecoder('utf-8');
                 const svgstr = decoder.decode(data);
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(svgstr, 'image/svg+xml');
@@ -600,7 +600,7 @@ const HeaderGenerator = () => {
             }
         } else if (isFileExt(finfo.file.name,".fon"))  {
             
-            var fon;
+            let fon;
             const cvs = document.getElementById("rasterFont");
             if (!cvs) {
                 console.log("Couldn't find font canvas");

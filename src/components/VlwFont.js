@@ -123,8 +123,8 @@ export const vlwMakeGlyph = (vlw, codepoint, color) => {
         let i = 0;
         vlw.dataCursor = 24;
         let bmp_offset = 0;
-        var w;
-        var h;
+        let w;
+        let h;
         while (i < vlw.glyphCount) {
             const cmp = vlwReadUint32(vlw);
             const glyphOffset = 24 + (i * 28);
@@ -154,7 +154,7 @@ export const vlwMakeGlyph = (vlw, codepoint, color) => {
         for (let y = 0; y < height; ++y) {
             for (let x = 0; x < width; ++x) {
                 const alpha = vlwReadUint8(vlw);
-                var pixel;
+                let pixel;
                 if (alpha === 0) {
                     pixel = 0;
                 } else {

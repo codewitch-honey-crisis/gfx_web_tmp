@@ -137,7 +137,7 @@ export const fonMakeGlyph = (fon, charCode, color) => {
     const view = new DataView(result);
     const widthBytes = Math.floor((width + 7) / 8);
 
-    var offs;
+    let offs;
     if (fon.charTableLength === 4) {
         offs = fonReadUint16(fon)
     } else {
