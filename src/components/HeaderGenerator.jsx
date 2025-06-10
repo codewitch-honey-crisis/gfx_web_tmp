@@ -20,7 +20,6 @@ const HeaderGenerator = () => {
     var fontLineHeight;
     var filecache;
     var idnt;
-    var finfo;
     var fsize;
     var fset;
     var funits;
@@ -517,16 +516,15 @@ const HeaderGenerator = () => {
         }
     }
     const previewFile = () => {
-        if ((!finfo && !fileInfo.current) || (!filecache && !fileCache)) {
+        if ((!fileInfo.current) || (!filecache && !fileCache)) {
             console.log("No gen info");
             return;
         }
         if (!filecache) {
             filecache = fileCache;
         }
-        if (!finfo) {
-            finfo = fileInfo.current;
-        }
+        
+        const finfo = fileInfo.current;
         if (!fsize) {
             fsize = fontSize;
         }
@@ -680,7 +678,6 @@ const HeaderGenerator = () => {
         const inputFile = document.getElementById("file");
         inputFile.files = e.dataTransfer.files;
         const fi = { file: e.dataTransfer.files[0], type: e.dataTransfer.files[0].type };
-        finfo = fi;
         fileInfo.current=fi;
         setIdent(toIdentifier(e.dataTransfer.files[0].name));
 
@@ -695,7 +692,6 @@ const HeaderGenerator = () => {
             reader.onload = async function (evt) {
                 filecache = evt.target.result;
                 setFileCache(filecache);
-                finfo = fi;
                 previewFile();
             };
             reader.readAsArrayBuffer(inputFile.files[0]);
