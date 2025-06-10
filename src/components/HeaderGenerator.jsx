@@ -596,22 +596,35 @@ const HeaderGenerator = () => {
                 }
             }
         } else if (isFileExt(finfo.file.name,".fon"))  {
-            const fon = fonLoad(fcache, fset);
-            fontLineHeight = fon.lineHeight;
-            setFontHeight(fontLineHeight);
+            
+            var fon;
             const cvs = document.getElementById("rasterFont");
             if (!cvs) {
                 console.log("Couldn't find font canvas");
-            } else {
-                cvs.width = cvs.offsetWidth;
-                cvs.height = cvs.offsetHeight;
-
-                const ctx = cvs.getContext("2d");
-                ctx.clearRect(0, 0, cvs.width, cvs.height);
-
-                drawFonString(ctx, fon,
-                    "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz", 0, 0, 0xFF0FF0FF);
+                return;
             }
+            try {
+                fon = fonLoad(fcache, fset);
+            }
+            catch {
+                console.log("Couldn't load font");
+                const ctx = cvs.getContext("2d");
+                ctx.clearRect(0, 0, cvs.width, cvs.height);    
+                return;
+            }
+            
+            fontLineHeight = fon.lineHeight;
+            setFontHeight(fontLineHeight);
+        
+            cvs.width = cvs.offsetWidth;
+            cvs.height = cvs.offsetHeight;
+
+            const ctx = cvs.getContext("2d");
+            ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+            drawFonString(ctx, fon,
+                "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz", 0, 0, 0xFF0FF0FF);
+        
         } else if(isFileExt(finfo.file.name,".vlw")) {
             const vlw = vlwLoad(fcache);
             fontLineHeight = vlw.lineHeight;
