@@ -478,12 +478,24 @@ const HeaderGenerator = () => {
 
                 // Get bounding box of all content
                 document.body.appendChild(svg);
-                const bbox = svg.getBBox();
+                let dim;
+                let w=svg.getAttributeNS(null,"width");
+                let h=svg.getAttributeNS(null,"height");
+                if(w && h && w.length>0 && h.length>0) {
+                    dim = {
+                        width: Math.ceil(parseFloat(w)),
+                        height: Math.ceil(parseFloat(h))
+                    };
+                } else {
+                    const bbox = svg.getBBox();
+                    dim = {
+                        width: Math.ceil(bbox.width + bbox.x),
+                        height: Math.ceil(bbox.height + bbox.y)
+                    };
+                }
+                
                 document.body.removeChild(svg);
-                const dim = {
-                    width: Math.ceil(bbox.width + bbox.x),
-                    height: Math.ceil(bbox.height + bbox.y)
-                };
+                
                 if (dim && dim.width > 0) {
                     resolve(dim);
                 } else {
