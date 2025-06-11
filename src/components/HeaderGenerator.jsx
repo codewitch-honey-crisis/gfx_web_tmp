@@ -356,6 +356,9 @@ const HeaderGenerator = () => {
     }
 
     const handleFileChange = (e) => {
+        if(e.target.files.length===0) {
+            return;
+        }
         const fi = prepareNewFile(e.target.files[0]);
         if (isSupportedImage(fi) ||
             isSupportedFont(fi)
@@ -908,7 +911,8 @@ const HeaderGenerator = () => {
                     )}</>
                 )}
             </div><br />
-            {fileInfo.current && (<><h4>Preview</h4></>) && (<>
+            {fileInfo.current && (<><h4>Preview</h4></>)}
+            {fileInfo.current && (<>
                 {isValidIdentifer(ident) && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)}>{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, exposeStream, genType, undefined)}</SyntaxHighlighter>)}
                 {hasFileExt(fileInfo.current, ".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
                 {!hasFileExt(fileInfo.current, ".tvg") && !hasFileExt(fileInfo.current, ".svg") && isSupportedImage(fileInfo.current) && (<img id="picture" onLoad={revokePicture()} />)}
