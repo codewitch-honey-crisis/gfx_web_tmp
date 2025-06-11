@@ -84,6 +84,15 @@ const toUtf32 = function* (str) {
         yield cp;
     }
 }
+const hasFontSizeAndUnits = (fsize,funits) => {
+    if(!fsize || isNaN(fsize) || fsize===0) {
+        return false;
+    }
+    if(!funits || (funits!="px" && funits!="em")) {
+        return false;
+    }
+    return true;
+}
 const isSpecializedType = (fileInfo, size, units) => {
     if (hasFileExt(fileInfo, ".fon")) {
         return true;
@@ -93,7 +102,7 @@ const isSpecializedType = (fileInfo, size, units) => {
         return true;
     } else if (hasFileExt(fileInfo, ".vlw")) {
         return true;
-    } else if (isTrueType(fileInfo) && size && !isNaN(size) && size != 0 && units) {
+    } else if (isTrueType(fileInfo) && hasFontSizeAndUnits(size,units)) {
         return true;
     }
     return false;
@@ -162,7 +171,7 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
         } else {
             commentPart = "TrueType vector font";
         }
-        if(size && !isNaN(size) && size != 0 && units) {
+        if(size && !isNaN(size) && size != 0 && units && units!=="" && units!=="none") {
             isTtf = true;
             isSpecialized = true;
         }
@@ -333,7 +342,7 @@ const HeaderGenerator = () => {
     const [fontSet, setFontSet] = useState(0);
     const [fontHeight, setFontHeight] = useState(0);
     const [fontSize, setFontSize] = useState(0);
-    const [fontUnits, setFontUnits] = useState("em");
+    const [fontUnits, setFontUnits] = useState("none");
     const [imageScale, setImageScale] = useState("scale_1_1");
     const [imageDim, setImageDim] = useState("");
     const [genType, setGenType] = useState("C");
@@ -411,29 +420,17 @@ const HeaderGenerator = () => {
     }
     const handleFontSizeValueChange = (e) => {
         let n = Number.parseFloat(e.target.value);
-        if (isNaN(n)) {
-            n = 0;
-        }
         fsize = n;
         setFontSize(n);
         gencache = undefined;
         previewFile();
     }
     const handleFontSizeUnitChange = (e) => {
-        let u = e.target.value;
-        if (u === "none" || u === undefined || u === "") {
-            setFontSize(0);
-            setFontUnits(u);
-            gencache = undefined;
-            previewFile();
-            return;
+        funits = e.target.value;
+        if(!funits) {
+            funits = "none";
         }
-        if (u != "em" && u != "px") {
-            u = "em";
-        }
-        funits = u;
-        fsize = 0;
-        setFontUnits(u);
+        setFontUnits(funits);
         gencache = undefined;
         previewFile();
     }
@@ -504,6 +501,7 @@ const HeaderGenerator = () => {
             }
         });
     }
+    
     const getCreatedTypeName = () => {
         if (fileInfo.current) {
             if (!genType || genType === "" || genType === "C") {
@@ -776,15 +774,11 @@ const HeaderGenerator = () => {
                 fnt.load().then(() => {
                     document.fonts.add(fnt);
                     URL.revokeObjectURL(fnturl);
-                    let fntsize = fsize;
-                    let funit = funits;
-                    if (!fntsize || fntsize === 0) {
-                        fntsize = 2;
+                    if(!gentype.startsWith("G") || !hasFontSizeAndUnits(fsize,funits)) {
+                        fsize = 2;
+                        funits="em";
                     }
-                    if (!funit) {
-                        funit = "em";
-                    }
-                    spn.innerHTML = `<pre style="font: ${fntsize}${funit} ${idnt}; color: #FF0FF0;">` +
+                    spn.innerHTML = `<pre style="font: ${fsize}${funits} ${idnt}; color: #FF0FF0;">` +
                         "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz".replace(/[\u00A0-\u9999<>\&]/g, i => '&#' + i.charCodeAt(0) + ';') +
                         "</pre>";
                 });
@@ -849,7 +843,7 @@ const HeaderGenerator = () => {
                                         <td>
                                             <input type="text" onChange={handleFontSizeValueChange} />
                                             <select onChange={handleFontSizeUnitChange}>
-                                                <option>none</option>
+                                                <option value="none">none</option>
                                                 <option value="em">em</option>
                                                 <option value="px">px</option>
                                             </select>
