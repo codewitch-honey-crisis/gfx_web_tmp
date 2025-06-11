@@ -168,11 +168,11 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
     if (isGfx) {
         if (isFon) {
             result += "#include \"gfx_win_font.hpp\"\r\n\r\n";
-            result += `/// @brief The ${commentPart}\r\n`;
+            result += `/// @brief A ${commentPart}\r\n`;
             result += `extern gfx::win_font ${identifier};\r\n`;
         } else if (isVlw) {
             result += "#include \"gfx_vlw_font.hpp\"\r\n\r\n";
-            result += `/// @brief The ${commentPart}\r\n`;
+            result += `/// @brief A ${commentPart}\r\n`;
             result += `extern gfx::vlw_font ${identifier};\r\n`;
         } else if (isJpg) {
             result += "#include \"gfx_jpg_image.hpp\"\r\n\r\n";
@@ -180,18 +180,18 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
                 const dim = jpgScaleDim(imgSize, imageScale);
                 result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${dim.width}, ${dim.height}}\r\n\r\n`
             }
-            result += `/// @brief The ${commentPart}\r\n`;
+            result += `/// @brief A ${commentPart}\r\n`;
             result += `extern gfx::jpg_image ${identifier};\r\n`;
         } else if (isPng) {
             result += "#include \"gfx_png_image.hpp\"\r\n\r\n";
             if (imgSize) {
                 result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
             }
-            result += `/// @brief The ${commentPart}\r\n`;
+            result += `/// @brief A ${commentPart}\r\n`;
             result += `extern gfx::png_image ${identifier};\r\n`;
         } else if (isTtf) {
             result += "#include \"gfx_ttf_font.hpp\"\r\n\r\n";
-            result += `/// @brief The ${commentPart}\r\n`;
+            result += `/// @brief A ${commentPart}\r\n`;
             result += `extern gfx::ttf_font ${identifier};\r\n`;
         } else {
             result += "#include \"gfx_core.hpp\"\r\n\r\n";
@@ -200,11 +200,11 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
                     result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
                 }
             }
-            result += `/// @brief The ${commentPart}\r\n`;
+            result += `/// @brief A ${commentPart}\r\n`;
             result += `extern gfx::const_buffer_stream ${identifier};\r\n`;
         }
         if (exposeStream && isSpecialized) {
-            result += `/// @brief The constant source stream\r\n`;
+            result += `/// @brief A ${commentPart} constant source stream\r\n`;
             result += `extern gfx::const_buffer_stream ${identifier}_stream;\r\n`;
         }
     } else {
@@ -219,14 +219,14 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
                 result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
             }
             result += "#ifdef __cplusplus\r\nextern \"C\"\r\n#else\r\nextern\r\n#endif\r\n";
-            result += `/// @brief The ${commentPart}\r\n`;
+            result += `/// @brief A ${commentPart}\r\n`;
             result += `const char* ${identifier};\r\n`;
         } else {
             if ((isSvg || isTvg || isPng || isJpg) && imgSize) {
                 result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
             }
             result += "#ifdef __cplusplus\r\nextern \"C\"\r\n#else\r\nextern\r\n#endif\r\n";
-            result += `/// @brief The ${commentPart}\r\n`;
+            result += `/// @brief A ${commentPart}\r\n`;
             result += `const uint8_t ${identifier}[];\r\n`;
         }
     }
