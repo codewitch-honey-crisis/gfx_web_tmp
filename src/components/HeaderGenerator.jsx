@@ -39,7 +39,7 @@ const isSupportedFont = (fileInfo) => {
 }
 const isRasterFont = (fileInfo) => {
     return fileInfo && fileInfo.name && hasFileExt(fileInfo, ".vlw") || hasFileExt(fileInfo, ".fon");
-    
+
 }
 const isTrueType = (fileInfo) => {
     const n = fileInfo.name.toLowerCase();
@@ -77,7 +77,7 @@ const toUtf32 = function* (str) {
     }
 }
 const isSpecializedType = (fileInfo, size, units) => {
-    if (hasFileExt(fileInfo,".fon")) {
+    if (hasFileExt(fileInfo, ".fon")) {
         return true;
     } else if (fileInfo.type === "image/jpeg") {
         return true;
@@ -125,7 +125,7 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
     let isPng = false;
     let isSvg = false;
     let isTvg = false;
-    if (hasFileExt(fileInfo,".fon")) {
+    if (hasFileExt(fileInfo, ".fon")) {
         isFon = true;
         isSpecialized = isFon;
     } else if (fileType === "image/jpeg") {
@@ -177,7 +177,7 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
             }
             result += `extern gfx::const_buffer_stream ${identifier};\r\n`;
         }
-        if(exposeStream && isSpecialized) {
+        if (exposeStream && isSpecialized) {
             result += `extern gfx::const_buffer_stream ${identifier}_stream;\r\n`;
         }
     } else {
@@ -242,7 +242,7 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
                 result += `gfx::const_buffer_stream ${identifier}\r\n    (${identifier}_data, sizeof(${identifier}_data));\r\n`;
             }
         }
-        if(isSpecialized && exposeStream) {
+        if (isSpecialized && exposeStream) {
             result += `gfx::const_buffer_stream ${identifier}_stream\r\n    (${identifier}_data, sizeof(${identifier}_data));\r\n`;
         }
     } else {
@@ -299,7 +299,7 @@ const HeaderGenerator = () => {
     const [imageScale, setImageScale] = useState("scale_1_1");
     const [imageDim, setImageDim] = useState("");
     const [genType, setGenType] = useState("C");
-    const [exposeStream,setExposeStream] = useState(false);
+    const [exposeStream, setExposeStream] = useState(false);
 
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
@@ -322,7 +322,7 @@ const HeaderGenerator = () => {
         if (isSupportedImage(fi) ||
             isSupportedFont(fi)
         ) {
-            if(fileCache.current) {
+            if (fileCache.current) {
                 previewFile();
                 return;
             }
@@ -333,7 +333,7 @@ const HeaderGenerator = () => {
             };
             reader.readAsArrayBuffer(e.target.files[0]);
         }
-        
+
     };
     const handleIdentChange = (e) => {
         if (ident != e.target.value) {
@@ -652,7 +652,7 @@ const HeaderGenerator = () => {
                 }
             }
         } else if (hasFileExt(fileInfo.current, ".fon")) {
-            
+
             let fon;
             const cvs = document.getElementById("rasterFont");
             if (!cvs) {
@@ -736,7 +736,7 @@ const HeaderGenerator = () => {
         if (isSupportedImage(fi) ||
             isSupportedFont(fi)
         ) {
-            if(fileCache.current) {
+            if (fileCache.current) {
                 previewFile();
                 return;
             }
@@ -759,60 +759,60 @@ const HeaderGenerator = () => {
                                 <td colSpan={2}><input id="file" type="file" onChange={handleFileChange} /></td>
                             </tr>
                             {fileInfo.current && (<>
-                            <tr>
-                                <td><label>Output:</label></td>
-                                <td>
-                                    <select id="output" defaultValue={genType} onChange={handleTypeChange}>
-                                        <option value="C">Raw C/++</option>
-                                        <option value="GFX2">GFX 2.x</option>
-                                    </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><label>Identifier: </label></td><td><input type="text" id="identifier" value={ident} onChange={handleIdentChange} /></td>
-                            </tr>
-                            {hasFileExt(fileInfo.current, ".fon") && genType.startsWith("G") && (
                                 <tr>
-                                    <td><label>Set Index: </label></td>
+                                    <td><label>Output:</label></td>
                                     <td>
-                                        <input type="text" onChange={handleFontSetValueChange} />
-                                    </td>
-                                </tr>
-                            )}
-                            {isTrueType(fileInfo.current) && genType.startsWith("G") && (
-                                <tr>
-                                    <td><label>Size: </label></td>
-                                    <td>
-                                        <input type="text" onChange={handleFontSizeValueChange} />
-                                        <select onChange={handleFontSizeUnitChange}>
-                                            <option>none</option>
-                                            <option value="em">em</option>
-                                            <option value="px">px</option>
+                                        <select id="output" defaultValue={genType} onChange={handleTypeChange}>
+                                            <option value="C">Raw C/++</option>
+                                            <option value="GFX2">GFX 2.x</option>
                                         </select>
                                     </td>
                                 </tr>
-                            )}
-                            {isSpecializedType(fileInfo.current,fontSize,fontUnits) && genType.startsWith("G") && (
                                 <tr>
-                                    <td><label>Stream: </label></td>
-                                    <td>
-                                        <input type="checkbox" onChange={handleStreamChange} />
-                                    </td>
+                                    <td><label>Identifier: </label></td><td><input type="text" id="identifier" value={ident} onChange={handleIdentChange} /></td>
                                 </tr>
-                            )}
-                            {fileInfo.current.type == "image/jpeg" && genType.startsWith("G") && (
-                                <tr>
-                                    <td><label>Scale: </label></td>
-                                    <td>
-                                        <select onChange={handleImageScaleChange}>
-                                            <option value="scale_1_1">1:1</option>
-                                            <option value="scale_1_2">1:2</option>
-                                            <option value="scale_1_4">1:4</option>
-                                            <option value="scale_1_8">1:8</option>
-                                        </select>
-                                    </td>
-                                </tr>
-                            )}
+                                {hasFileExt(fileInfo.current, ".fon") && genType.startsWith("G") && (
+                                    <tr>
+                                        <td><label>Set Index: </label></td>
+                                        <td>
+                                            <input type="text" onChange={handleFontSetValueChange} />
+                                        </td>
+                                    </tr>
+                                )}
+                                {isTrueType(fileInfo.current) && genType.startsWith("G") && (
+                                    <tr>
+                                        <td><label>Size: </label></td>
+                                        <td>
+                                            <input type="text" onChange={handleFontSizeValueChange} />
+                                            <select onChange={handleFontSizeUnitChange}>
+                                                <option>none</option>
+                                                <option value="em">em</option>
+                                                <option value="px">px</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                )}
+                                {isSpecializedType(fileInfo.current, fontSize, fontUnits) && genType.startsWith("G") && (
+                                    <tr>
+                                        <td><label>Stream: </label></td>
+                                        <td>
+                                            <input type="checkbox" onChange={handleStreamChange} />
+                                        </td>
+                                    </tr>
+                                )}
+                                {fileInfo.current.type == "image/jpeg" && genType.startsWith("G") && (
+                                    <tr>
+                                        <td><label>Scale: </label></td>
+                                        <td>
+                                            <select onChange={handleImageScaleChange}>
+                                                <option value="scale_1_1">1:1</option>
+                                                <option value="scale_1_2">1:2</option>
+                                                <option value="scale_1_4">1:4</option>
+                                                <option value="scale_1_8">1:8</option>
+                                            </select>
+                                        </td>
+                                    </tr>
+                                )}
                             </>)}
                         </tbody>
                     </table>
@@ -825,11 +825,11 @@ const HeaderGenerator = () => {
                                 <li>MIME: <span className="fileType">{fileInfo.current.type}</span></li>)}
                             {isSupportedImage(fileInfo.current) && imageDim && (
                                 <li>Dimensions: <span className="fileDim">{imageDim.width}x{imageDim.height}</span></li>)}
-                            {isRasterFont(fileInfo.current) && fontHeight>0 && (
+                            {isRasterFont(fileInfo.current) && fontHeight > 0 && (
                                 <li>Line Height: <span className="fontHeight">{fontHeight}</span></li>)}
                             <li>Size: <span className="fileSize">{fileInfo.current.size} bytes</span></li>
                             <li>Type: <span className="genType">{getCreatedTypeName()}</span></li>
-                            
+
                         </ul>
 
                     </section>
@@ -848,7 +848,7 @@ const HeaderGenerator = () => {
                 )}
             </div><br />
             {fileInfo.current && (<><h4>Preview</h4></>) && (<>
-                {ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)} >{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, exposeStream, genType, undefined)}</SyntaxHighlighter>)}
+                {ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)}>{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, exposeStream, genType, undefined)}</SyntaxHighlighter>)}
                 {hasFileExt(fileInfo.current, ".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
                 {!hasFileExt(fileInfo.current, ".tvg") && !hasFileExt(fileInfo.current, ".svg") && isSupportedImage(fileInfo.current) && (<img id="picture" onLoad={revokePicture()} />)}
                 {hasFileExt(fileInfo.current, ".svg") && isSupportedImage(fileInfo.current) && (<div id="svgContainer" />)}
