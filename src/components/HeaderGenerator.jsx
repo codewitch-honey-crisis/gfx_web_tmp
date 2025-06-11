@@ -748,7 +748,7 @@ const HeaderGenerator = () => {
     return (
         <>
             <div id="drop-target" onDrop={handleDropFiles} className={"border-drag"} onDragOver={(event) => event.preventDefault()}>
-                <p>Select or drag a file here</p>
+                {!fileInfo.current && (<p>Select or drag a file here</p>)}
                 <div className="input-group">
                     <table border="0">
                         <tbody>
