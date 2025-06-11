@@ -734,7 +734,6 @@ const HeaderGenerator = () => {
             isSupportedFont(fi)
         ) {
             if(fileCache.current) {
-                console.log("cache hit on uploaded file");
                 previewFile();
                 return;
             }
