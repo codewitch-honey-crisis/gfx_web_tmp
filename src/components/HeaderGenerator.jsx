@@ -318,7 +318,7 @@ const HeaderGenerator = () => {
     let fset;
     let funits;
     let iscale;
-
+    let invfonidx;
     const [syntaxTheme, setSyntaxTheme] = useState(isBrowserDarkTheme() ? a11yDark : a11yLight);
 
     function useForceUpdate() {
@@ -328,6 +328,7 @@ const HeaderGenerator = () => {
     const fileInfo = useRef("");
     const fileCache = useRef(undefined);
     const downloadUrl = useRef("");
+    const [invalidFonIndex,setInvalidFonIndex] = useState(false);
     const [ident, setIdent] = useState("");
     const [fontSet, setFontSet] = useState(0);
     const [fontHeight, setFontHeight] = useState(0);
@@ -380,11 +381,17 @@ const HeaderGenerator = () => {
         }
     }
     const handleFontSetValueChange = (e) => {
-        let n = Number.parseInt(e.target.value);
-        if (isNaN(n)) {
-            n = 0;
+        let n;
+        if(e.target.value.length>0) {
+            n = Number.parseInt(e.target.value);
+            if (isNaN(n)) {
+                n = 0;
+            }
+        } else {
+            n=0;
         }
         fset = n;
+        setInvalidFonIndex(false);
         setFontSet(fset);
         gencache = undefined;
         previewFile();
@@ -699,11 +706,15 @@ const HeaderGenerator = () => {
             }
             try {
                 fon = fonLoad(fcache, fset);
+                invfonidx = false;
+                setInvalidFonIndex(false);
             }
             catch {
                 console.log("Couldn't load font");
                 const ctx = cvs.getContext("2d");
                 ctx.clearRect(0, 0, cvs.width, cvs.height);
+                invfonidx = true;
+                setInvalidFonIndex(true);
                 return;
             }
             fontLineHeight = fon.lineHeight;
@@ -873,21 +884,28 @@ const HeaderGenerator = () => {
                     </section>
                 )}
 
-                {fileInfo.current && isValidIdentifer(ident) && (
-                    <>
-                        <button onClick={generateContentFile}
-                            className="submit"
-                        >Download header file</button><br />
-                        <button
-                            onClick={generateContentClip}
-                            className="submit"
-                        >Copy to clipboard</button>
-                    </>
-                )}
-                {fileInfo.current && !isValidIdentifer(ident) && (
-                    <>
-                        <span style={{color: "red"}}>Error: Invalid identifier</span>
-                    </>
+                {fileInfo.current && (<>
+                    {isValidIdentifer(ident) && (!hasFileExt(fileInfo.current, ".fon") || invalidFonIndex===false) && (
+                        <>
+                            <button onClick={generateContentFile}
+                                className="submit"
+                            >Download header file</button><br />
+                            <button
+                                onClick={generateContentClip}
+                                className="submit"
+                            >Copy to clipboard</button>
+                        </>)
+                    }
+                    {!isValidIdentifer(ident) && (
+                        <>
+                            <span style={{color: "red"}}>Error: Invalid identifier</span>
+                        </>
+                    )}
+                    {(hasFileExt(fileInfo.current, ".fon") && invalidFonIndex) && (
+                        <>
+                            <span style={{color: "red"}}>Error: Invalid font index</span>
+                        </>
+                    )}</>
                 )}
             </div><br />
             {fileInfo.current && (<><h4>Preview</h4></>) && (<>
