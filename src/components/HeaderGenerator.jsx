@@ -20,6 +20,14 @@ const isText = (fileInfo) => {
 const getIdentifier = (fileInfo) => {
     return toIdentifier(fileInfo.name);
 }
+const isValidIdentifer = (id) => {
+    if(!id || !id.length || id.length===0) {
+        return false;
+    }
+    const re = /^[A-Za-z_][A-Za-z0-9_]*/;
+    const matches = id.match(re);
+    return (matches && matches.length>0)
+}
 const hasFileExt = (fileInfo, cmp) => {
     return fileInfo && (fileInfo.name && fileInfo.name.toLowerCase().endsWith(cmp.toLowerCase()));
 }
@@ -865,7 +873,7 @@ const HeaderGenerator = () => {
                     </section>
                 )}
 
-                {fileInfo.current && ident && ident.length > 0 && (
+                {fileInfo.current && isValidIdentifer(ident) && (
                     <>
                         <button onClick={generateContentFile}
                             className="submit"
@@ -876,9 +884,14 @@ const HeaderGenerator = () => {
                         >Copy to clipboard</button>
                     </>
                 )}
+                {fileInfo.current && !isValidIdentifer(ident) && (
+                    <>
+                        <span style={{color: "red"}}>Error: Invalid identifier</span>
+                    </>
+                )}
             </div><br />
             {fileInfo.current && (<><h4>Preview</h4></>) && (<>
-                {ident && ident.length > 0 && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)}>{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, exposeStream, genType, undefined)}</SyntaxHighlighter>)}
+                {isValidIdentifer(ident) && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)}>{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, exposeStream, genType, undefined)}</SyntaxHighlighter>)}
                 {hasFileExt(fileInfo.current, ".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
                 {!hasFileExt(fileInfo.current, ".tvg") && !hasFileExt(fileInfo.current, ".svg") && isSupportedImage(fileInfo.current) && (<img id="picture" onLoad={revokePicture()} />)}
                 {hasFileExt(fileInfo.current, ".svg") && isSupportedImage(fileInfo.current) && (<div id="svgContainer" />)}
