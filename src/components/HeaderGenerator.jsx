@@ -24,7 +24,7 @@ const isValidIdentifer = (id) => {
     if(!id || !id.length || id.length===0) {
         return false;
     }
-    const re = /^[A-Za-z_][A-Za-z0-9_]*/;
+    const re = /^[A-Za-z_][A-Za-z0-9_]*$/;
     const matches = id.match(re);
     return (matches && matches.length>0)
 }
