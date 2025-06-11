@@ -299,12 +299,37 @@ const HeaderGenerator = () => {
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         useForceUpdate();
     });
-
+    const prepareNewFile = (file) => {
+        fileCache.current = undefined;
+        const fi = { file: file, type: file.type };
+        fileInfo.current = fi;
+        setIdent(toIdentifier(file.name));
+        setImageScale(undefined); // set this back so it doesn't accidentally get set to something other than the default
+        setFontSize(undefined);
+        setFontUnits(undefined);
+        setFontSet(undefined);
+        gencache = undefined;
+        return fi;
+    }
 
     const handleFileChange = (e) => {
-        fileInfo.current = ({ file: e.target.files[0], type: e.target.files[0].type });
-        setIdent(toIdentifier(e.target.files[0].name));
-        gencache = undefined;
+        const fi = prepareNewFile(e.target.files[0]);
+        if (isSupportedImage(fi) ||
+            isSupportedFont(fi)
+        ) {
+            if(fileCache.current) {
+                console.log("cache hit on uploaded file");
+                previewFile();
+                return;
+            }
+            let reader = new FileReader();
+            reader.onload = async function (evt) {
+                fileCache.current = evt.target.result;
+                previewFile();
+            };
+            reader.readAsArrayBuffer(e.target.files[0]);
+        }
+        
     };
     const handleIdentChange = (e) => {
         if (ident != e.target.value) {
@@ -699,33 +724,31 @@ const HeaderGenerator = () => {
             }
         }
     }
-    const onDropFiles = (e) => {
+
+    const handleDropFiles = (e) => {
         e.preventDefault();
-        fileCache.current = undefined;
         const inputFile = document.getElementById("file");
         inputFile.files = e.dataTransfer.files;
-        const fi = { file: e.dataTransfer.files[0], type: e.dataTransfer.files[0].type };
-        fileInfo.current = fi;
-        setIdent(toIdentifier(e.dataTransfer.files[0].name));
-        setImageScale(undefined); // set this back so it doesn't accidentally get set to something other than the default
-        setFontSize(undefined);
-        setFontUnits(undefined);
-        setFontSet(undefined);
+        const fi = prepareNewFile(e.dataTransfer.files[0]);
         if (isSupportedImage(fi) ||
             isSupportedFont(fi)
         ) {
+            if(fileCache.current) {
+                console.log("cache hit on uploaded file");
+                previewFile();
+                return;
+            }
             let reader = new FileReader();
             reader.onload = async function (evt) {
                 fileCache.current = evt.target.result;
                 previewFile();
             };
-            reader.readAsArrayBuffer(inputFile.files[0]);
+            reader.readAsArrayBuffer(e.dataTransfer.files[0]);
         }
-        gencache = undefined;
     }
     return (
         <>
-            <div id="drop-target" onDrop={onDropFiles} className={"border-drag"} onDragOver={(event) => event.preventDefault()}>
+            <div id="drop-target" onDrop={handleDropFiles} className={"border-drag"} onDragOver={(event) => event.preventDefault()}>
                 <p>Select or drag a file here</p>
                 <div className="input-group">
                     <table border="0">
