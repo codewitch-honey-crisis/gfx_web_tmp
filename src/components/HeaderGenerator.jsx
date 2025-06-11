@@ -125,32 +125,54 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
     let isPng = false;
     let isSvg = false;
     let isTvg = false;
+    let commentPart = isGfx?"constant data stream":"constant source data";
     if (hasFileExt(fileInfo, ".fon")) {
         isFon = true;
         isSpecialized = isFon;
+        commentPart = "Windows 3.1 raster font";
     } else if (fileType === "image/jpeg") {
         isJpg = true;
         isSpecialized = true;
+        commentPart = "JPEG image";
     } else if (fileType === "image/svg+xml") {
         isSvg = true;
+        commentPart = "Scalable Vector Graphic";
     } else if (hasFileExt(fileInfo, ".tvg")) {
         isTvg = true;
+        commentPart = "TInyVG binary vector graphic"
     } else if (fileType === "image/png") {
         isPng = true;
         isSpecialized = true;
+        commentPart = "PNG image";
     } else if (hasFileExt(fileInfo, ".vlw")) {
         isVlw = true;
         isSpecialized = true;
-    } else if (isTrueType(fileInfo) && size && !isNaN(size) && size != 0 && units) {
-        isTtf = true;
-        isSpecialized = true;
+        commentPart = "Processing antialiased raster font";
+    } else if (isTrueType(fileInfo)) {
+        if(hasFileExt(".otf")) {
+            commentPart = "OpenType vector font";
+        } else {
+            commentPart = "TrueType vector font";
+        }
+        if(size && !isNaN(size) && size != 0 && units) {
+            isTtf = true;
+            isSpecialized = true;
+        }
+    } else if(isTrueType(fileInfo)) {
+        if(hasFileExt(".otf")) {
+            commentPart = "OpenType vector font";
+        } else {
+            commentPart = "TrueType vector font";
+        }
     }
     if (isGfx) {
         if (isFon) {
             result += "#include \"gfx_win_font.hpp\"\r\n\r\n";
+            result += `/// @brief The ${commentPart}\r\n`;
             result += `extern gfx::win_font ${identifier};\r\n`;
         } else if (isVlw) {
             result += "#include \"gfx_vlw_font.hpp\"\r\n\r\n";
+            result += `/// @brief The ${commentPart}\r\n`;
             result += `extern gfx::vlw_font ${identifier};\r\n`;
         } else if (isJpg) {
             result += "#include \"gfx_jpg_image.hpp\"\r\n\r\n";
@@ -158,15 +180,18 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
                 const dim = jpgScaleDim(imgSize, imageScale);
                 result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${dim.width}, ${dim.height}}\r\n\r\n`
             }
+            result += `/// @brief The ${commentPart}\r\n`;
             result += `extern gfx::jpg_image ${identifier};\r\n`;
         } else if (isPng) {
             result += "#include \"gfx_png_image.hpp\"\r\n\r\n";
             if (imgSize) {
                 result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
             }
+            result += `/// @brief The ${commentPart}\r\n`;
             result += `extern gfx::png_image ${identifier};\r\n`;
         } else if (isTtf) {
             result += "#include \"gfx_ttf_font.hpp\"\r\n\r\n";
+            result += `/// @brief The ${commentPart}\r\n`;
             result += `extern gfx::ttf_font ${identifier};\r\n`;
         } else {
             result += "#include \"gfx_core.hpp\"\r\n\r\n";
@@ -175,9 +200,11 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
                     result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
                 }
             }
+            result += `/// @brief The ${commentPart}\r\n`;
             result += `extern gfx::const_buffer_stream ${identifier};\r\n`;
         }
         if (exposeStream && isSpecialized) {
+            result += `/// @brief The constant source stream\r\n`;
             result += `extern gfx::const_buffer_stream ${identifier}_stream;\r\n`;
         }
     } else {
@@ -192,12 +219,14 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
                 result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
             }
             result += "#ifdef __cplusplus\r\nextern \"C\"\r\n#else\r\nextern\r\n#endif\r\n";
+            result += `/// @brief The ${commentPart}\r\n`;
             result += `const char* ${identifier};\r\n`;
         } else {
             if ((isSvg || isTvg || isPng || isJpg) && imgSize) {
                 result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
             }
             result += "#ifdef __cplusplus\r\nextern \"C\"\r\n#else\r\nextern\r\n#endif\r\n";
+            result += `/// @brief The ${commentPart}\r\n`;
             result += `const uint8_t ${identifier}[];\r\n`;
         }
     }
@@ -309,10 +338,10 @@ const HeaderGenerator = () => {
         fileCache.current = undefined;
         fileInfo.current = file;
         setIdent(getIdentifier(file));
-        setImageScale(undefined); // set this back so it doesn't accidentally get set to something other than the default
-        setFontSize(undefined);
-        setFontUnits(undefined);
-        setFontSet(undefined);
+        // setImageScale(undefined); // set this back so it doesn't accidentally get set to something other than the default
+        // setFontSize(undefined);
+        // setFontUnits(undefined);
+        // setFontSet(undefined);
         gencache = undefined;
         return file;
     }
