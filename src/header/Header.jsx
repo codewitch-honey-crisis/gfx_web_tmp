@@ -22,6 +22,7 @@ function Header() {
             }>
                 <HeaderGenerator />
             </Suspense>
+            <center><a href="../index.html">GFX Home</a></center>
         </>
     );
 }

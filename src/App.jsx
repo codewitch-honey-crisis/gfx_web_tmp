@@ -12,6 +12,7 @@ function App() {
       <Routes>
         
           <Route path="/" element={<Home />} />
+          <Route path="/index.html" element={<Home />} />
           <Route path="header/" element={<Header />} />
           <Route path="header/index.html" element={<Header />} />
           <Route path="icon-pack/" element={<IconPack />} />
