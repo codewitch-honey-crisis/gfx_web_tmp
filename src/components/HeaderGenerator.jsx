@@ -4,7 +4,7 @@ import clang from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
 import cpplang from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
 import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { generateStringLiteral, generateByteArrayLiteral, toIdentifier } from './CGen';
-import { tvgDimensions, tvgRender } from './TinyVG'
+import { tvgDimensions, tvgRender, tvgRenderFile, tvgRenderUrl } from './TinyVG'
 import { fonLoad, fonMakeGlyph } from './FonFont';
 import { vlwLoad, vlwMakeGlyph } from './VlwFont';
 import './HeaderGenerator.css';
@@ -508,12 +508,12 @@ const HeaderGenerator = () => {
     const generateContentClip = () => {
         if (!gencache && fileInfo.current) {
             let reader = new FileReader();
-            reader.readAsArrayBuffer(fileInfo.current);
             reader.onload = async function (evt) {
                 console.log("generating content to clipboard");
                 gencache = generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, exposeStream, genType, evt.target.result);
                 await navigator.clipboard.writeText(gencache);
             }
+            reader.readAsArrayBuffer(fileInfo.current);
         } else if (gencache) {
             console.log("writing content to clipboard");
             navigator.clipboard.writeText(gencache);
@@ -543,12 +543,13 @@ const HeaderGenerator = () => {
     const generateContentFile = () => {
         if (!gencache && fileInfo.current) {
             let reader = new FileReader();
-            reader.readAsArrayBuffer(fileInfo.current);
             reader.onload = function (evt) {
                 console.log("generating content to file");
                 gencache = generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, exposeStream, genType, evt.target.result);
                 setGeneratedFileUrl();
             }
+            reader.readAsArrayBuffer(fileInfo.current);
+            
         } else if (gencache) {
             console.log("writing content to file");
             setGeneratedFileUrl();

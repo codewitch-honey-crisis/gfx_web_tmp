@@ -721,3 +721,35 @@ export const tvgRender = (id, data) => {
     }
     throw new Error("TinyVG: Not a valid TinyVG file");
 }
+const tvgReadFile = (file) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.addEventListener("onload",(evt)=>{
+            resolve(evt.target.result);
+        });
+        reader.addEventListener("onerror",(evt)=>{
+            reject("Error loading file");
+        });
+        reader.readAsArrayBuffer(file)
+    }).then((value)=>{
+        return value;
+    });
+}
+const tvgFetch = (url) => {
+    return fetch(url).then((value)=>{
+        return value.arrayBuffer();
+    });
+}
+// TODO: test this
+export const tvgRenderFile = (id, file) => {
+    tvgReadFile(file).then((value)=>{
+        tvgRender(id, value);
+    })
+}
+// TODO: test this
+export const tvgRenderUrl = (id, url) => {
+    tvgFetch(url).then((value)=>{
+        console.log("render");
+        tvgRender(id, value);
+    })
+}
