@@ -4,7 +4,7 @@ const HeaderGenerator = lazy(() => import('../components/HeaderGenerator.jsx'));
 function Header() {
     return (
         <>
-            <h2>GFX header file generator</h2>
+            <a href="../index.html">&lt; GFX Home</a>
             <Suspense fallback={
                 <center>
                     <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'>
@@ -20,9 +20,9 @@ function Header() {
                     </svg>
                 </center>
             }>
+                <h2>GFX header file generator</h2>
                 <HeaderGenerator />
             </Suspense>
-            <center><a href="../index.html">GFX Home</a></center>
         </>
     );
 }

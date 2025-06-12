@@ -774,11 +774,13 @@ const HeaderGenerator = () => {
                 fnt.load().then(() => {
                     document.fonts.add(fnt);
                     URL.revokeObjectURL(fnturl);
-                    if(!gentype.startsWith("G") || !hasFontSizeAndUnits(fsize,funits)) {
-                        fsize = 2;
-                        funits="em";
+                    let f = fsize;
+                    let u = funits;
+                    if(!gentype.startsWith("G") || !hasFontSizeAndUnits(f,u)) {
+                        f = 2;
+                        u="em";
                     }
-                    spn.innerHTML = `<pre style="font: ${fsize}${funits} ${idnt}; color: #FF0FF0;">` +
+                    spn.innerHTML = `<pre style="font: ${f}${u} ${idnt}; color: #FF0FF0;">` +
                         "0123456789/\\.,_-+()[]{}$%?\nABCDEFGHIJKLMNOPQRSTUVWXYZ\nabcdefghijklmnopqrstuvwxyz".replace(/[\u00A0-\u9999<>\&]/g, i => '&#' + i.charCodeAt(0) + ';') +
                         "</pre>";
                 });
