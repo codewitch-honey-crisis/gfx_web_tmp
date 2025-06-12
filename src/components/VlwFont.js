@@ -100,6 +100,9 @@ const vlwSeekCodepoint = (vlw, codepoint) => {
     return -1;
 
 }
+export const vlwGlyphCount = (vlw) => {
+    return vlw.glyphCount;
+}
 // makes a glyph given a font handle, a Unicode codepoint, and a color
 export const vlwMakeGlyph = (vlw, codepoint, color) => {
     if (((codepoint > 0x20) && (codepoint < 0xA0) && (codepoint != 0x7F)) || (codepoint > 0xFF)) {

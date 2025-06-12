@@ -128,6 +128,9 @@ export const fonLoad = (data, fontSetIndex = 0) => {
     result.lastCharCode = fonReadUint8(result);
     return result;
 }
+export const fonGlyphCount = (fon) => {
+    return (fon.lastCharCode - fon.firstCharCode + 1);
+}
 // create a glyph from a font handle, a charCode and a color
 export const fonMakeGlyph = (fon, charCode, color) => {
     fonSeekChar(fon, charCode);

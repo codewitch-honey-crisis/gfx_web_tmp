@@ -5,8 +5,8 @@ import cpplang from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
 import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { generateStringLiteral, generateByteArrayLiteral, toIdentifier } from './CGen';
 import { tvgDimensions, tvgRender, tvgRenderFile, tvgRenderUrl } from './TinyVG'
-import { fonLoad, fonMakeGlyph } from './FonFont';
-import { vlwLoad, vlwMakeGlyph } from './VlwFont';
+import { fonLoad, fonMakeGlyph, fonGlyphCount } from './FonFont';
+import { vlwLoad, vlwMakeGlyph, vlwGlyphCount } from './VlwFont';
 import './HeaderGenerator.css';
 const isBrowserDarkTheme = () => {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -327,7 +327,7 @@ const HeaderGenerator = () => {
     let fset;
     let funits;
     let iscale;
-    let invfonidx;
+    let fgcount;
     const [syntaxTheme, setSyntaxTheme] = useState(isBrowserDarkTheme() ? a11yDark : a11yLight);
 
     function useForceUpdate() {
@@ -347,7 +347,7 @@ const HeaderGenerator = () => {
     const [imageDim, setImageDim] = useState("");
     const [genType, setGenType] = useState("C");
     const [exposeStream, setExposeStream] = useState(false);
-
+    const [glyphCount,setGlyphCount] = useState(0);
 
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
         useForceUpdate();
@@ -646,6 +646,9 @@ const HeaderGenerator = () => {
         if (!iscale) {
             iscale = imageScale;
         }
+        if(!fgcount) {
+            fgcount = glyphCount;
+        }
         if (!fset) {
             fset = fontSet;
         }
@@ -719,14 +722,14 @@ const HeaderGenerator = () => {
             }
             try {
                 fon = fonLoad(fcache, fset);
-                invfonidx = false;
                 setInvalidFonIndex(false);
+                fgcount=fonGlyphCount(fon)
+                setGlyphCount(fgcount);
             }
             catch {
                 console.log("Couldn't load font");
                 const ctx = cvs.getContext("2d");
                 ctx.clearRect(0, 0, cvs.width, cvs.height);
-                invfonidx = true;
                 setInvalidFonIndex(true);
                 return;
             }
@@ -746,6 +749,8 @@ const HeaderGenerator = () => {
             const vlw = vlwLoad(fcache);
             fontLineHeight = vlw.lineHeight;
             setFontHeight(fontLineHeight);
+            fgcount=vlwGlyphCount(vlw);
+            setGlyphCount(fgcount);
             const cvs = document.getElementById("rasterFont");
             if (!cvs) {
                 console.log("Couldn't find font canvas");
@@ -885,16 +890,16 @@ const HeaderGenerator = () => {
                                 <li>MIME: <span className="fileType">{fileInfo.current.type}</span></li>)}
                             {isSupportedImage(fileInfo.current) && imageDim && (
                                 <li>Dimensions: <span className="fileDim">{imageDim.width}x{imageDim.height}</span></li>)}
-                            {isRasterFont(fileInfo.current) && fontHeight > 0 && (
+                            {isRasterFont(fileInfo.current) && (fontHeight > 0) && (
                                 <li>Line Height: <span className="fontHeight">{fontHeight}</span></li>)}
+                            {isRasterFont(fileInfo.current) && (
+                                <li>Glyph Count: <span className="fontGlyphCount">{glyphCount}</span></li>)}
                             <li>Size: <span className="fileSize">{fileInfo.current.size} bytes</span></li>
                             <li>Type: <span className="genType">{getCreatedTypeName()}</span></li>
 
                         </ul>
-
                     </section>
                 )}
-
                 {fileInfo.current && (<>
                     {isValidIdentifer(ident) && (!hasFileExt(fileInfo.current, ".fon") || invalidFonIndex===false) && (
                         <>
@@ -917,10 +922,10 @@ const HeaderGenerator = () => {
                             <span style={{color: "red"}}>Error: Invalid font index</span>
                         </>
                     )}</>
-                )}
+                )
+                }
             </div><br />
-            {fileInfo.current && (<><h4>Preview</h4></>)}
-            {fileInfo.current && (<>
+            {fileInfo.current && (<><h4>Preview</h4></>) && (<>
                 {isValidIdentifer(ident) && (<SyntaxHighlighter style={syntaxTheme} language={getGeneratedLanguage(genType)}>{generateHeader(ident, fileInfo.current, imageDim, imageScale, fontSet, fontSize, fontUnits, exposeStream, genType, undefined)}</SyntaxHighlighter>)}
                 {hasFileExt(fileInfo.current, ".tvg") && (<svg id="tinyvg" xmlns="http://www.w3.org/2000/svg"></svg>)}
                 {!hasFileExt(fileInfo.current, ".tvg") && !hasFileExt(fileInfo.current, ".svg") && isSupportedImage(fileInfo.current) && (<img id="picture" onLoad={revokePicture()} />)}
