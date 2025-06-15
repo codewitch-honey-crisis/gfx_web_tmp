@@ -168,7 +168,7 @@ const generateHeaderAsync = async (icons, iconsSel,fileName,bitDepth,clampHeight
         }
         result+= `/// @brief A ${dim.width}x${dim.height} alpha transparency map for ${icon.name}\r\n`;
         if(isGfx) {
-            result+= `extern gfx::bitmap<gfx::alpha_pixel<${bitDepth}>> ${id};\r\n`;
+            result+= `extern const gfx::const_bitmap<gfx::alpha_pixel<${bitDepth}>> ${id};\r\n`;
         } else {
             result+= `uint8_t ${id}[];\r\n`;
         }
@@ -190,7 +190,7 @@ const generateHeaderAsync = async (icons, iconsSel,fileName,bitDepth,clampHeight
         result+=generateByteArrayLiteral(data_id,preview?undefined:data.bitmap,isGfx,widthBytes);
         result+="\r\n";
         if(isGfx) {
-            result+= `gfx::bitmap<gfx::alpha_pixel<${bitDepth}>> ${id}\r\n    ({${dim.width}, ${dim.height}}, ${data_id});\r\n`;
+            result+= `const gfx::const_bitmap<gfx::alpha_pixel<${bitDepth}>> ${id}\r\n    ({${dim.width}, ${dim.height}}, ${data_id});\r\n`;
         }
         if(i<iconsSel.length-1) {
             result+="\r\n";
@@ -532,7 +532,7 @@ const IconPackGenerator = () => {
         </div>
         {iconSel.length>0 && (<>
         <h3>Preview</h3>
-        <Suspense fallback={(<center><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="#FF156D" stroke="#FF156D" stroke-width="15" width="30" height="30" x="25" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.4"></animate></rect><rect fill="#FF156D" stroke="#FF156D" stroke-width="15" width="30" height="30" x="85" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.2"></animate></rect><rect fill="#FF156D" stroke="#FF156D" stroke-width="15" width="30" height="30" x="145" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0"></animate></rect></svg></center>)}><CodeBox syntaxTheme={syntaxTheme} language={getGeneratedLanguage(genType)} gen={genAsync} /></Suspense>
+        <Suspense fallback={(<center><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="25" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.4"></animate></rect><rect fill="#FF156D" stroke="#FF156D" stroke-width="15" width="30" height="30" x="85" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.2"></animate></rect><rect fill="#FF156D" stroke="#FF156D" stroke-width="15" width="30" height="30" x="145" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0"></animate></rect></svg></center>)}><CodeBox syntaxTheme={syntaxTheme} language={getGeneratedLanguage(genType)} gen={genAsync} /></Suspense>
         </>)}
     </>)
 
