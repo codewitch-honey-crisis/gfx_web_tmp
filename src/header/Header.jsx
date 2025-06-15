@@ -1,4 +1,5 @@
 import '../App.css';
+import './Header.css';
 import { lazy, Suspense } from 'react';
 const HeaderGenerator = lazy(() => import('../components/HeaderGenerator.jsx'));
 function Header() {

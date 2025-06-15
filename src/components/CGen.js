@@ -53,12 +53,15 @@ export const generateText = (data, startSpacing = 0) => {
     }
     return result + "\"";
 }
-export const generateBinary = (data) => {
+export const generateBinary = (data, width) => {
     let result = "";
     if(data) {
+        if(!width || width===0) {
+            width = 30;
+        }
         const view = new DataView(data);
         for (let i = 0; i < view.byteLength; ++i) {
-            if (0 === (i % (30))) {
+            if (0 === (i % (width))) {
                 if (i < view.byteLength - 1) {
                     result += "\r\n    ";
                 } else {
@@ -85,11 +88,11 @@ export const generateStringLiteral = (name, data, isStatic) => {
 
 }
 
-export const generateByteArrayLiteral = (name, data, isStatic) => {
+export const generateByteArrayLiteral = (name, data, isStatic, width) => {
     if (isStatic) {
-        return `static const uint8_t ${name}[] = {${generateBinary(data)}};`;
+        return `static const uint8_t ${name}[] = {${generateBinary(data,width)}};`;
     }
-    return `const uint8_t ${name}[] = {${generateBinary(data)}};`;
+    return `const uint8_t ${name}[] = {${generateBinary(data,width)}};`;
 
 }
 export const toIdentifier = (name) => {

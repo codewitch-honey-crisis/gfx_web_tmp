@@ -4,6 +4,10 @@
   color: white;
   border-color: #555;
 }
+.submit:hover {
+  text-decoration: underline;
+}
+
 .fileType {
     color: brown
 }
@@ -15,6 +19,9 @@
 }
 .fontHeight {
     color:darkcyan
+}
+.fontGlyphCount {
+    color: darkslateblue
 }
 .genType {
     color:green;
@@ -44,7 +51,10 @@
         color:coral;
     }
     .fontHeight {
-        color:darkcyan
+        color:cyan
+    }
+    .fontGlyphCount {
+        color: lightslategray
     }
     .genType {
         color:chartreuse;
@@ -58,8 +68,4 @@
         border-color: gray;
     }
 
-}
-
-.submit:hover {
-  text-decoration: underline;
 }

@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import clang from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
 import cpplang from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
 import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { generateStringLiteral, generateByteArrayLiteral, toIdentifier } from './CGen';
-import { tvgDimensions, tvgRender, tvgRenderFile, tvgRenderUrl } from './TinyVG'
+import { tvgDimensions, tvgRender } from './TinyVG'
 import { fonLoad, fonMakeGlyph, fonGlyphCount } from './FonFont';
 import { vlwLoad, vlwMakeGlyph, vlwGlyphCount } from './VlwFont';
 import './HeaderGenerator.css';
@@ -330,9 +330,14 @@ const HeaderGenerator = () => {
     let fgcount;
     const [syntaxTheme, setSyntaxTheme] = useState(isBrowserDarkTheme() ? a11yDark : a11yLight);
 
-    function useForceUpdate() {
-        setSyntaxTheme(isBrowserDarkTheme() ? a11yDark : a11yLight)
-    }
+    useEffect(() => {
+            const handleThemeChange = (event) => {
+                setSyntaxTheme(event.matches ? a11yDark : a11yLight);
+            };
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            mediaQuery.addEventListener('change', handleThemeChange);
+            return () => mediaQuery.removeEventListener('change', handleThemeChange); // clean up your event listerens
+        }, []); // runs on mount
 
     const fileInfo = useRef("");
     const fileCache = useRef(undefined);
@@ -349,9 +354,6 @@ const HeaderGenerator = () => {
     const [exposeStream, setExposeStream] = useState(false);
     const [glyphCount,setGlyphCount] = useState(0);
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-        useForceUpdate();
-    });
     const prepareNewFile = (file) => {
         fileCache.current = undefined;
         fileInfo.current = file;
@@ -564,10 +566,6 @@ const HeaderGenerator = () => {
         alink.click();
         setTimeout(() => { if (downloadUrl.current && downloadUrl.current.length > 0) { URL.revokeObjectURL(downloadUrl.current), downloadUrl.current = ""; } }, 500);
     }
-    const revokePicture = () => {
-        setTimeout(function () { try { URL.revokeObjectURL(document.getElementById("picture").src); } catch { console.log("couldn't revoke url"); } }, 1000);
-    }
-
     const generateContentFile = () => {
         if (!gencache && fileInfo.current) {
             let reader = new FileReader();
@@ -582,6 +580,9 @@ const HeaderGenerator = () => {
             console.log("writing content to file");
             setGeneratedFileUrl();
         }
+    }
+    const revokePicture = () => {
+        setTimeout(function () { try { URL.revokeObjectURL(document.getElementById("picture").src); } catch { console.log("couldn't revoke url"); } }, 1000);
     }
     const drawFonString = (cvsctx, fon, str, x, y, col) => {
         let xo = 0;

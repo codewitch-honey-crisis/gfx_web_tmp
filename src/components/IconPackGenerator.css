@@ -1,0 +1,65 @@
+.inputButtonCheck {
+	appearance: none;
+	-webkit-appearance: none;
+}
+
+.inputButtonCheckLabel {
+	display: inline-block;
+	border: 1px solid currentcolor;
+	color: red;
+	margin-right: 1rem;
+	padding: 0.5em;
+	border-radius: 0.25rem;
+}
+.inputButtonCheckLabel:has(input[type=checkbox]:checked) {
+	background: red;
+	color: white;
+}
+
+.inputButtonCheckLabel:has(input[type=checkbox]:not(:checked)):hover {
+	opacity: 0.5;
+}
+
+.scroll-container {
+  min-width: 400px;
+  max-height: 400px;
+  overflow-y: scroll;
+  display: flex;
+  flex-flow: wrap;
+  padding-left: 2%;
+  width: 100%;
+  height: 400px;
+}
+.my-2 {
+    margin-bottom: .5rem !important;
+    margin-top: .5rem !important;
+}
+
+.icoCol {
+    display: flex auto 0 0;
+    width: 25%;
+}
+.justify-content-center {
+    justify-content: center !important;
+}
+.text-center {
+    text-align: center !important;
+}
+.bg-primary {
+    color:red;
+    background-color: white;
+}
+.bg-secondary {
+    background-color:red;
+    color: white;
+}
+
+.submit {
+  margin-top: 1rem;
+  background-color: red;
+  color: white;
+  border-color: #555;
+}
+.submit:hover {
+  text-decoration: underline;
+}
