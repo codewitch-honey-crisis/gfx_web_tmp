@@ -313,28 +313,7 @@ const getGeneratedLanguage = (genType) => {
     }
     return "cpp";
 }
-const IconBox = (prop) => {
-    let style = { flex: "auto 0 0" };
-    let cw = prop.clampWidth;
-    let ch = prop.clampHeight;
-    if(!cw && !ch) {
-        ch = 32;
-    }
-    const dim = scaleIcon(prop.node,cw,ch);
-    style.width = `${dim.width}px`;
-    style.height = `${dim.height}px`;
-    return (<><div style={{overflow: "hidden", padding: "1% 1% 1% 1%" }}>
-        <center>
-            <div dangerouslySetInnerHTML={{ __html: prop.node.svg }} style={style}></div>
-            <label className={"inputButtonCheckLabel"} style={{ width: "80%", overflowY: "hidden" }}>
-                
-                <input type="checkbox" className={"inputButtonCheck"} checked={prop.checked} onChange={prop.onChange} />
-                {prop.node.label}
-            </label>
-        </center>
-    </div>
-    </>);
-}
+
 const iconData = fetchIcons();
 const IconPackGenerator = () => {
     SyntaxHighlighter.registerLanguage('c', clang);
@@ -549,6 +528,28 @@ const IconPackGenerator = () => {
     </>)
 
 
+}
+const IconBox = (prop) => {
+    let style = { flex: "auto 0 0" };
+    let cw = prop.clampWidth;
+    let ch = prop.clampHeight;
+    if(!cw && !ch) {
+        ch = 32;
+    }
+    const dim = scaleIcon(prop.node,cw,ch);
+    style.width = `${dim.width}px`;
+    style.height = `${dim.height}px`;
+    return (<><div style={{overflow: "hidden", padding: "1% 1% 1% 1%" }}>
+        <center>
+            <div dangerouslySetInnerHTML={{ __html: prop.node.svg }} style={style}></div>
+            <label className={"inputButtonCheckLabel"} style={{ width: "80%", overflowY: "hidden" }}>
+                
+                <input type="checkbox" className={"inputButtonCheck"} checked={prop.checked} onChange={prop.onChange} />
+                {prop.node.label}
+            </label>
+        </center>
+    </div>
+    </>);
 }
 const IconContainer = (prop) => {
     return (<div id="iconContainer" style={{ backgroundColor: "white", display: "flex", flexFlow: "wrap", overflow: "auto", paddingLeft: "2%", width: "100%", height: "400px" }}>
