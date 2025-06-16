@@ -114,7 +114,7 @@ const scaleIcon = (icon,clampWidth,clampHeight) => {
         throw new Error("clampWidth or clampHeight must be specified");
     }
 }
-const computeBitmapsTotalBytes = (icons,iconsSel, bitDepth, clampWidth,clampHeight) => {
+const computeBitmapsTotalBytes = (icons,iconsSel, bitDepth, clampHeight,clampWidth) => {
     let result = 0;
     for(let i = 0; i<iconsSel.length;++i) {
         const icon = icons[iconsSel[i]];
