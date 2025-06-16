@@ -4,9 +4,155 @@ import clang from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
 import cpplang from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
 import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { generateByteArrayLiteral, toIdentifier } from './CGen';
-import IconBox from './IconBox';
 import './IconPackGenerator.css';
-import { filterIcons,resampleToBitDepth,rasterizeSvg,scaleIcon,computeBitmapsTotalBytes } from './Icons';
+const filterIcons = (icons, filter, selected) => {
+    if(!filter || filter.length==0) {
+        return [...icons];
+    }
+    const result = [];
+    if(selected) {
+        for(const i of selected) {
+            result.push(icons[i]);
+        }
+    }
+    if (!filter || filter.length === 0) {
+        for (const icon of icons) {
+            if(!selected || (!selected.includes(icon.index))) {
+                result.push(icon);
+            }
+        }    
+        return result;
+    }
+    for (const icon of icons) {
+        if (icon.name && (icon.name.includes(filter) || icon.search.includes(`${filter} `)) ) {
+            if(!selected || (!selected.includes(icon.index))) {
+                result.push(icon);
+            }
+        }
+    }
+    return result;
+}
+const resampleToBitDepth = (buffer, bitDepth) => {
+    const max = Math.pow(2,bitDepth)-1;
+    const view = new DataView(buffer);
+    const widthFactor = bitDepth/8;
+    let bytes = Math.ceil((view.byteLength/4)*widthFactor);
+        
+    const result = new Uint8ClampedArray(bytes);
+    let j = 0;
+    let accum = 0;
+    let bit = 0;
+    for(let i = 0;i<view.byteLength;i+=4) {
+        // we can cheat with these svgs.
+        // they are always black on transparent
+        // so we don't need the RGB vals,
+        // just the alpha
+        // const r = view.getUint8(i+0);
+        // const g = view.getUint8(i+1);
+        // const b = view.getUint8(i+2);
+        const a = view.getUint8(i+3);
+        if(bitDepth===8) {
+            result[j++]=a;
+            continue;
+        }
+        const alpha = a/255.0;
+        const val = Math.round(max*alpha);
+        switch(bitDepth) {
+            case 1: {
+                accum<<=1;
+                accum|=val;
+                if(++bit===8) {
+                    bit = 0;
+                    result[j++]=accum;
+                    accum=0;
+                }
+                continue;
+            }
+            case 2: {
+                accum<<=2;
+                accum|=val;
+                if((bit+=2)===8) {
+                    bit = 0;
+                    result[j++]=accum;
+                    accum=0;
+                }
+                continue;
+            }
+            case 4: {
+                accum<<=4;
+                accum|=val;
+                if((bit+=4)===8) {
+                    bit = 0;
+                    result[j++]=accum;
+                    accum=0;
+                }
+                continue;
+            }
+        }
+        
+        throw new Error("Unsupported bit depth");
+    }
+    if(j<result.length-1) {
+        result[j]=accum;
+    }
+    return result.buffer;
+}
+const rasterizeSvg = (svgElem, width, height, maxWidth, maxHeight, bitDepth) => {
+    
+    return new Promise((resolve, reject) => {
+        const aspect = width/height;
+        let scale = 1;
+        if(maxWidth && maxWidth>0 && width>maxWidth) {
+            scale = maxWidth/width;
+        }
+        if(maxHeight && maxHeight>0 && (height*scale)>maxHeight) {
+            scale = maxHeight/height;
+        }
+        const encoder = new TextEncoder();
+        const array = encoder.encode(svgElem);
+        const blb = new Blob([array.buffer],{type: "image/svg+xml"});
+        const srcurl = URL.createObjectURL(blb);
+        const imgtag = new Image(Math.ceil(width*scale),Math.ceil(height*scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.ceil(width*scale);
+        canvas.height = Math.ceil(height*scale);
+        const ctx = canvas.getContext("2d");
+        imgtag.onload = ()=> {
+            ctx.drawImage(imgtag, 0, 0);
+            const imgdata = ctx.getImageData(0,0,Math.ceil(width*scale),Math.ceil(height*scale));
+            URL.revokeObjectURL(srcurl);
+            resolve({width: Math.ceil(width*scale), height: Math.ceil(height*scale), bitmap: resampleToBitDepth(imgdata.data.buffer,bitDepth)});
+        }
+        imgtag.onerror = ()=> {
+            URL.revokeObjectURL(srcurl);
+            reject("Unable to load image");
+        }
+        imgtag.src = srcurl;
+    });
+}
+const scaleIcon = (icon,clampWidth,clampHeight) => {
+    if(clampHeight && clampHeight>0) {
+        const scale = clampHeight/icon.height;
+        return {width: Math.ceil(icon.width*scale), height: clampHeight };
+    } else if(clampWidth && clampWidth >0) {
+        const scale = clampWidth/icon.width;
+        return {width: clampWidth, height: Math.ceil(icon.height*scale) };
+    } else {
+        throw new Error("clampWidth or clampHeight must be specified");
+    }
+}
+const computeBitmapsTotalBytes = (icons,iconsSel, bitDepth, clampHeight,clampWidth) => {
+    let result = 0;
+    for(let i = 0; i<iconsSel.length;++i) {
+        const icon = icons[iconsSel[i]];
+        if(!clampWidth && !clampHeight) {
+            clampHeight = 32;
+        }
+        const dim = scaleIcon(icon,clampWidth,clampHeight);
+        result+= Math.ceil(((dim.width*dim.height)*bitDepth)/8);
+    }
+    return result;
+}
 const makeSafeName = (names, name) => {
     let j = 1;
     let cmp = name;
@@ -249,7 +395,7 @@ const IconPackGenerator = () => {
                 }
             }
         }
-        return result;
+        return [result,[]];
     }
 
    
@@ -293,13 +439,16 @@ const IconPackGenerator = () => {
         }
         throw Error(`Unknown action: ${action} `);
     }
-    const icons = useMemo(() => mapIcons(iconData.read()));
+    const iconsAndSel = useMemo(() => mapIcons(iconData.read()));
     
-    const [iconSel, setIconSel] = useState([]);
+    const [iconSel, dispatch] = useReducer(iconSelReducer, iconsAndSel[1]);
+    const isNodeSelected = (index) => {
+        return iconSel.indexOf(index)>=0;
+    }
     const generateContentClip = () => {
         if (!gencache && clampValue && clampValue>0 && moduleId && moduleId.length>0) {
             console.log("generating content to clipboard");
-            generateHeaderAsync(icons,iconSel,moduleId,parseInt(bitDepth),clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined,genType,false).then((result)=>{
+            generateHeaderAsync(iconsAndSel[0],iconSel,moduleId,parseInt(bitDepth),clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined,genType,false).then((result)=>{
                 gencache = result;
                 navigator.clipboard.writeText(gencache);
             });
@@ -329,7 +478,7 @@ const IconPackGenerator = () => {
     const generateContentFile = () => {
         if (!gencache && clampValue && clampValue>0 && moduleId && moduleId.length>0) {
             console.log("generating content to file");
-            generateHeaderAsync(icons,iconSel,moduleId,parseInt(bitDepth),clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined,genType,false).then((result)=>{
+            generateHeaderAsync(iconsAndSel[0],iconSel,moduleId,parseInt(bitDepth),clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined,genType,false).then((result)=>{
                 gencache=result;
                 setGeneratedFileUrl();
             });
@@ -338,28 +487,14 @@ const IconPackGenerator = () => {
             setGeneratedFileUrl();
         }
     }
-    const genAsync = generateHeader(icons,iconSel,moduleId,parseInt(bitDepth),clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined,genType,true);
+    const genAsync = generateHeader(iconsAndSel[0],iconSel,moduleId,parseInt(bitDepth),clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined,genType,true);
 
     const handleIconSelectedChange = (node, evt) => {
         if (evt.target.checked) {
-            const result = [];
-            for(let i = 0;i<iconSel.length;++i) {
-                if(iconSel[i]!==node.index) {
-                    result.push(iconSel[i])
-                }
-            }
-            result.push(node.index);
-            setIconSel(result);
+            dispatch({ type: 'check', index: node.index });
         } else {
-            const result = [];
-            for(let i = 0;i<iconSel.length;++i) {
-                if(iconSel[i]!==node.index) {
-                    result.push(iconSel[i])
-                }
-            }
-            setIconSel(result);
+            dispatch({ type: 'uncheck', index: node.index });
         }
-        
     }
     return (<>
         <table border={0}>
@@ -382,8 +517,8 @@ const IconPackGenerator = () => {
             </>)
         }
         <br />
-        <label>Filter:<input type="text" style={{width: "100%"}} onChange={handleIconFilterChange} /></label><label>Selected:&nbsp;<span>{iconSel.length} ({computeBitmapsTotalBytes(icons,iconSel,bitDepth,clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined)}&nbsp;bytes)</span></label>
-        <IconContainer icons={icons} selected={iconSel} filter={iconFilter} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} iconChange={handleIconSelectedChange}/>
+        <label>Filter:<input type="text" style={{width: "100%"}} onChange={handleIconFilterChange} /></label><label>Selected:&nbsp;<span>{iconSel.length} ({computeBitmapsTotalBytes(iconsAndSel[0],iconSel,bitDepth,clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined)}&nbsp;bytes)</span></label>
+        <IconContainer icons={iconsAndSel[0]} selected={iconSel} filter={iconFilter} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} iconChange={handleIconSelectedChange}/>
         {iconSel.length>0 && moduleId && moduleId.length>0 && (<>
         <h3>Preview</h3>
         <Suspense fallback={(<center><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="25" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.4"></animate></rect><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="85" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.2"></animate></rect><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="145" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0"></animate></rect></svg></center>)}>
@@ -394,11 +529,32 @@ const IconPackGenerator = () => {
 
 
 }
-
+const IconBox = (prop) => {
+    let style = { flex: "auto 0 0" };
+    let cw = prop.clampWidth;
+    let ch = prop.clampHeight;
+    if(!cw && !ch) {
+        ch = 32;
+    }
+    const dim = scaleIcon(prop.node,cw,ch);
+    style.width = `${dim.width}px`;
+    style.height = `${dim.height}px`;
+    return (<><div style={{overflow: "hidden", padding: "1% 1% 1% 1%" }}>
+        <center>
+            <div dangerouslySetInnerHTML={{ __html: prop.node.svg }} style={style}></div>
+            <label className={"inputButtonCheckLabel"} style={{ width: "80%", overflowY: "hidden" }}>
+                
+                <input type="checkbox" className={"inputButtonCheck"} checked={prop.checked} onChange={prop.onChange} />
+                {prop.node.label}
+            </label>
+        </center>
+    </div>
+    </>);
+}
 const IconContainer = (prop) => {
     return (<div id="iconContainer" style={{ backgroundColor: "white", display: "flex", flexFlow: "wrap", overflow: "auto", paddingLeft: "2%", width: "100%", height: "400px" }}>
         <>{filterIcons(prop.icons, prop.filter,prop.selected).map((node) => (
-            <IconBox key={node.key} clampHeight={prop.clampHeight} clampWidth={prop.clampWidth} icon={node} checked={prop.selected.indexOf(node.index)>=0} onChange={(evt) => { prop.iconChange(node,evt); }} />
+            <IconBox key={node.key} clampHeight={prop.clampHeight} clampWidth={prop.clampWidth} node={node} checked={prop.selected.indexOf(node.index)>=0} onChange={(evt) => { prop.iconChange(node,evt); }} />
         )
         )}</>
     </div>);
