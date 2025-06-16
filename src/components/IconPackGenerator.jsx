@@ -1,9 +1,9 @@
-import React, { useCallback, useReducer, useMemo, useState, useRef, useEffect, Suspense } from 'react';
+import React, { useReducer, useMemo, useState, useRef, useEffect, Suspense } from 'react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import clang from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
 import cpplang from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
 import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { generateStringLiteral, generateByteArrayLiteral, toIdentifier } from './CGen';
+import { generateByteArrayLiteral, toIdentifier } from './CGen';
 import './IconPackGenerator.css';
 const resampleToBitDepth = (buffer, bitDepth) => {
     const max = Math.pow(2,bitDepth)-1;
