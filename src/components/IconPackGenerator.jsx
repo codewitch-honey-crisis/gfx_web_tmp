@@ -16,6 +16,10 @@ const resampleToBitDepth = (buffer, bitDepth) => {
     let accum = 0;
     let bit = 0;
     for(let i = 0;i<view.byteLength;i+=4) {
+        // we can cheat with these svgs.
+        // they are always black on transparent
+        // so we don't need the RGB vals,
+        // just the alpha
         const r = view.getUint8(i+0);
         const g = view.getUint8(i+1);
         const b = view.getUint8(i+2);
@@ -26,36 +30,39 @@ const resampleToBitDepth = (buffer, bitDepth) => {
         }
         const alpha = a/255.0;
         const val = Math.round(max*alpha);
-        if(bitDepth===1) {
-            accum<<=1;
-            accum|=val;
-            if(++bit===8) {
-                bit = 0;
-                result[j++]=accum;
-                accum=0;
+        switch(bitDepth) {
+            case 1: {
+                accum<<=1;
+                accum|=val;
+                if(++bit===8) {
+                    bit = 0;
+                    result[j++]=accum;
+                    accum=0;
+                }
+                continue;
             }
-            continue;
-        }
-        if(bitDepth===2) {
-            accum<<=2;
-            accum|=val;
-            if((bit+=2)===8) {
-                bit = 0;
-                result[j++]=accum;
-                accum=0;
+            case 2: {
+                accum<<=2;
+                accum|=val;
+                if((bit+=2)===8) {
+                    bit = 0;
+                    result[j++]=accum;
+                    accum=0;
+                }
+                continue;
             }
-            continue;
-        }
-        if(bitDepth===4) {
-            accum<<=4;
-            accum|=val;
-            if((bit+=4)===8) {
-                bit = 0;
-                result[j++]=accum;
-                accum=0;
+            case 4: {
+                accum<<=4;
+                accum|=val;
+                if((bit+=4)===8) {
+                    bit = 0;
+                    result[j++]=accum;
+                    accum=0;
+                }
+                continue;
             }
-            continue;
         }
+        
         throw new Error("Unsupported bit depth");
     }
     if(j<result.length-1) {
@@ -532,7 +539,9 @@ const IconPackGenerator = () => {
         </div>
         {iconSel.length>0 && (<>
         <h3>Preview</h3>
-        <Suspense fallback={(<center><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="25" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.4"></animate></rect><rect fill="#FF156D" stroke="#FF156D" stroke-width="15" width="30" height="30" x="85" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.2"></animate></rect><rect fill="#FF156D" stroke="#FF156D" stroke-width="15" width="30" height="30" x="145" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0"></animate></rect></svg></center>)}><CodeBox syntaxTheme={syntaxTheme} language={getGeneratedLanguage(genType)} gen={genAsync} /></Suspense>
+        <Suspense fallback={(<center><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="25" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.4"></animate></rect><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="85" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.2"></animate></rect><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="145" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0"></animate></rect></svg></center>)}>
+            <CodeBox syntaxTheme={syntaxTheme} language={getGeneratedLanguage(genType)} gen={genAsync} />
+        </Suspense>
         </>)}
     </>)
 
