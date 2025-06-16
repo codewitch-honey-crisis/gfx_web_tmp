@@ -1,10 +1,37 @@
-import React, { useReducer, useMemo, useState, useRef, useEffect, Suspense } from 'react';
+import React, { memo, useReducer, useMemo, useState, useRef, useEffect, Suspense } from 'react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import clang from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
 import cpplang from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
 import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { generateByteArrayLiteral, toIdentifier } from './CGen';
 import './IconPackGenerator.css';
+const filterIcons = (icons, filter, selected) => {
+    if(!filter || filter.length==0) {
+        return [...icons];
+    }
+    const result = [];
+    if(selected) {
+        for(const i of selected) {
+            result.push(icons[i]);
+        }
+    }
+    if (!filter || filter.length === 0) {
+        for (const icon of icons) {
+            if(!selected || (!selected.includes(icon.index))) {
+                result.push(icon);
+            }
+        }    
+        return result;
+    }
+    for (const icon of icons) {
+        if (icon.name && (icon.name.includes(filter) || icon.search.includes(`${filter} `)) ) {
+            if(!selected || (!selected.includes(icon.index))) {
+                result.push(icon);
+            }
+        }
+    }
+    return result;
+}
 const resampleToBitDepth = (buffer, bitDepth) => {
     const max = Math.pow(2,bitDepth)-1;
     const view = new DataView(buffer);
@@ -392,33 +419,7 @@ const IconPackGenerator = () => {
         return [result,[]];
     }
 
-    const filterIcons = (icons, filter, selected) => {
-        if(!filter || filter.length==0) {
-            return [...icons];
-        }
-        const result = [];
-        if(selected) {
-            for(const i of selected) {
-                result.push(icons[i]);
-            }
-        }
-        if (!filter || filter.length === 0) {
-            for (const icon of icons) {
-                if(!selected || (!selected.includes(icon.index))) {
-                    result.push(icon);
-                }
-            }    
-            return result;
-        }
-        for (const icon of icons) {
-            if (icon.name && (icon.name.includes(filter) || icon.search.includes(`${filter} `)) ) {
-                if(!selected || (!selected.includes(icon.index))) {
-                    result.push(icon);
-                }
-            }
-        }
-        return result;
-    }
+   
     const handleIconFilterChange = (evt) => {
         setIconFilter(evt.target.value);
     }
@@ -538,12 +539,7 @@ const IconPackGenerator = () => {
         }
         <br />
         <label>Filter:<input type="text" style={{width: "100%"}} onChange={handleIconFilterChange} /></label><label>Selected:&nbsp;<span>{iconSel.length} ({computeBitmapsTotalBytes(iconsAndSel[0],iconSel,bitDepth,clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined)}&nbsp;bytes)</span></label>
-        <div id="iconContainer" style={{ backgroundColor: "white", display: "flex", flexFlow: "wrap", overflow: "auto", paddingLeft: "2%", width: "100%", height: "400px" }}>
-            <>{filterIcons(iconsAndSel[0], iconFilter,iconSel).map((node) => (
-                <IconBox key={node.key} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} node={node} checked={isNodeSelected(node.index)} onChange={(evt) => { handleIconSelectedChange(node, evt) }} />
-            )
-            )}</>
-        </div>
+        <IconContainer icons={iconsAndSel[0]} selected={iconSel} filter={iconFilter} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} iconChange={handleIconSelectedChange}/>
         {iconSel.length>0 && moduleId && moduleId.length>0 && (<>
         <h3>Preview</h3>
         <Suspense fallback={(<center><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="25" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.4"></animate></rect><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="85" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.2"></animate></rect><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="145" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0"></animate></rect></svg></center>)}>
@@ -553,6 +549,14 @@ const IconPackGenerator = () => {
     </>)
 
 
+}
+const IconContainer = (prop) => {
+    return (<div id="iconContainer" style={{ backgroundColor: "white", display: "flex", flexFlow: "wrap", overflow: "auto", paddingLeft: "2%", width: "100%", height: "400px" }}>
+        <>{filterIcons(prop.icons, prop.filter,prop.selected).map((node) => (
+            <IconBox key={node.key} clampHeight={prop.clampHeight} clampWidth={prop.clampWidth} node={node} checked={prop.selected.indexOf(node.index)>=0} onChange={(evt) => { prop.iconChange(node,evt); }} />
+        )
+        )}</>
+    </div>);
 }
 const CodeBox = (prop) => {
     const result=prop.gen.read();
