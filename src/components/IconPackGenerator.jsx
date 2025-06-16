@@ -288,7 +288,12 @@ const getGeneratedLanguage = (genType) => {
 }
 const IconBox = (prop) => {
     let style = { flex: "auto 0 0" };
-    const dim = scaleIcon(prop.node,prop.clampWidth,prop.clampHeight);
+    let cw = prop.clampWidth;
+    let ch = prop.clampHeight;
+    if(!cw && !ch) {
+        ch = 32;
+    }
+    const dim = scaleIcon(prop.node,cw,ch);
     style.width = `${dim.width}px`;
     style.height = `${dim.height}px`;
     return (<><div style={{overflow: "hidden", padding: "1% 1% 1% 1%" }}>
@@ -533,7 +538,7 @@ const IconPackGenerator = () => {
         <label>Filter:<input type="text" style={{width: "100%"}} onChange={handleIconFilterChange} /></label><label>Selected:&nbsp;<span>{iconSel.length} ({computeBitmapsTotalBytes(iconsAndSel[0],iconSel,bitDepth,clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined)}&nbsp;bytes)</span></label>
         <div id="iconContainer" style={{ backgroundColor: "white", display: "flex", flexFlow: "wrap", overflow: "auto", paddingLeft: "2%", width: "100%", height: "400px" }}>
             <>{filterIcons(iconsAndSel[0], iconFilter,iconSel).map((node) => (
-                <IconBox key={node.key} clampHeight={32} node={node} checked={isNodeSelected(node.index)} onChange={(evt) => { handleIconSelectedChange(node, evt) }} />
+                <IconBox key={node.key} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} node={node} checked={isNodeSelected(node.index)} onChange={(evt) => { handleIconSelectedChange(node, evt) }} />
             )
             )}</>
         </div>
