@@ -393,7 +393,9 @@ const IconPackGenerator = () => {
     }
 
     const filterIcons = (icons, filter, selected) => {
-        
+        if(!filter || filter.length==0) {
+            return [...icons];
+        }
         const result = [];
         if(selected) {
             for(const i of selected) {
