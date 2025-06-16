@@ -20,9 +20,9 @@ const resampleToBitDepth = (buffer, bitDepth) => {
         // they are always black on transparent
         // so we don't need the RGB vals,
         // just the alpha
-        const r = view.getUint8(i+0);
-        const g = view.getUint8(i+1);
-        const b = view.getUint8(i+2);
+        // const r = view.getUint8(i+0);
+        // const g = view.getUint8(i+1);
+        // const b = view.getUint8(i+2);
         const a = view.getUint8(i+3);
         if(bitDepth===8) {
             result[j++]=a;
@@ -85,7 +85,7 @@ const rasterizeSvg = (svgElem, width, height, maxWidth, maxHeight, bitDepth) => 
         const array = encoder.encode(svgElem);
         const blb = new Blob([array.buffer],{type: "image/svg+xml"});
         const srcurl = URL.createObjectURL(blb);
-        const imgtag = new Image(width*scale,height*scale);
+        const imgtag = new Image(Math.ceil(width*scale),Math.ceil(height*scale));
         const canvas = document.createElement("canvas");
         canvas.width = Math.ceil(width*scale);
         canvas.height = Math.ceil(height*scale);
