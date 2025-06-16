@@ -173,7 +173,7 @@ const generateHeaderAsync = async (icons, iconsSel,fileName,bitDepth,clampHeight
             result+= `#define ${id.toUpperCase()}_DIMENSIONS {${dim.width}, ${dim.height}}\r\n`
             result+= "#ifdef __cplusplus\r\nextern \"C\"\r\n#else\r\nextern\r\n#endif\r\n";
         }
-        result+= `/// @brief A ${dim.width}x${dim.height} alpha transparency map for ${icon.name}\r\n`;
+        result+= `/// @brief "${icon.label}" - a ${dim.width}x${dim.height} alpha transparency map\r\n`;
         if(isGfx) {
             result+= `extern const gfx::const_bitmap<gfx::alpha_pixel<${bitDepth}>> ${id};\r\n`;
         } else {
