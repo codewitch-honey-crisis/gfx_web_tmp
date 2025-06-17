@@ -6,7 +6,7 @@ import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hl
 import { generateByteArrayLiteral, toIdentifier } from './CGen';
 import IconBox from './IconBox';
 import './IconPackGenerator.css';
-import { filterIcons,resampleToBitDepth,rasterizeSvg,scaleIcon,computeBitmapsTotalBytes } from './Icons';
+import { filteredIcons, selectedIcons,rasterizeSvg,scaleIcon,computeBitmapsTotalBytes } from './Icons';
 const makeSafeName = (names, name) => {
     let j = 1;
     let cmp = name;
@@ -383,11 +383,16 @@ const IconPackGenerator = () => {
         }
         <br />
         <label>Filter:<input type="text" style={{width: "100%"}} onChange={handleIconFilterChange} /></label><label>Selected:&nbsp;<span>{iconSel.length} ({computeBitmapsTotalBytes(icons,iconSel,bitDepth,clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined)}&nbsp;bytes)</span></label>
-        <IconContainer icons={icons} selected={iconSel} filter={iconFilter} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} iconChange={handleIconSelectedChange}/>
+        <h4>Choose</h4>
+        <IconContainer icons={filteredIcons(icons, iconFilter,iconSel)} selected={iconSel} filter={iconFilter} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} iconChange={handleIconSelectedChange} height={"400px"}/>
+        <h4>Selected</h4>
+        <IconContainer icons={selectedIcons(icons,iconSel)} selected={iconSel} filter={iconFilter} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} iconChange={handleIconSelectedChange} height={"200px"}/>
         {iconSel.length>0 && moduleId && moduleId.length>0 && (<>
-        <h3>Preview</h3>
-        <Suspense fallback={(<center><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="25" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.4"></animate></rect><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="85" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="-.2"></animate></rect><rect fill="#FF156D" stroke="#FF156D" strokeWidth="15" width="30" height="30" x="145" y="85"><animate attributeName="opacity" calcMode="spline" dur="2" values="1;0;1;" keySplines=".5 0 .5 1;.5 0 .5 1" repeatCount="indefinite" begin="0"></animate></rect></svg></center>)}>
-            <CodeBox syntaxTheme={syntaxTheme} language={getGeneratedLanguage(genType)} gen={genAsync} />
+        <Suspense fallback={(<div style={{height:"400px"}}><h3>Loading...</h3></div>)}>
+            <>
+                <h3>Preview</h3>
+                <CodeBox syntaxTheme={syntaxTheme} language={getGeneratedLanguage(genType)} gen={genAsync} />
+            </>
         </Suspense>
         </>)}
     </>)
@@ -396,17 +401,18 @@ const IconPackGenerator = () => {
 }
 
 const IconContainer = (prop) => {
-    return (<div id="iconContainer" style={{ backgroundColor: "white", display: "flex", flexFlow: "wrap", overflow: "auto", paddingLeft: "2%", width: "100%", height: "400px" }}>
-        <>{filterIcons(prop.icons, prop.filter,prop.selected).map((node) => (
-            <IconBox key={node.key} clampHeight={prop.clampHeight} clampWidth={prop.clampWidth} icon={node} checked={prop.selected.indexOf(node.index)>=0} onChange={(evt) => { prop.iconChange(node,evt); }} />
+    return (<div id="iconContainer" style={{ backgroundColor: "white", display: "flex", flexFlow: "wrap", overflow: "auto", paddingLeft: "2%", width: "100%", height: prop.height }}>
+        <>{prop.icons.map((icon) => (
+            <IconBox key={icon.key} clampHeight={prop.clampHeight} clampWidth={prop.clampWidth} icon={icon} checked={prop.selected.indexOf(icon.index)>=0} onChange={(evt) => { prop.iconChange(icon,evt); }} />
         )
         )}</>
     </div>);
 }
 const CodeBox = (prop) => {
     const result=prop.gen.read();
-    return ( <SyntaxHighlighter style={prop.syntaxTheme} language={prop.language}>{result}</SyntaxHighlighter>);
+    return (<div style={{height: "400px", overflowY: "scroll"}}><SyntaxHighlighter style={prop.syntaxTheme} language={prop.language}>{result}</SyntaxHighlighter></div> );
     
 }
 
 export default IconPackGenerator;
+//filterIcons(prop.icons, prop.filter,prop.selected)

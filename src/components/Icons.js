@@ -1,13 +1,5 @@
-export const filterIcons = (icons, filter, selected) => {
-    if(!filter || filter.length==0) {
-        return [...icons];
-    }
+export const filteredIcons = (icons, filter, selected) => {
     const result = [];
-    if(selected) {
-        for(const i of selected) {
-            result.push(icons[i]);
-        }
-    }
     if (!filter || filter.length === 0) {
         for (const icon of icons) {
             if(!selected || (!selected.includes(icon.index))) {
@@ -21,6 +13,15 @@ export const filterIcons = (icons, filter, selected) => {
             if(!selected || (!selected.includes(icon.index))) {
                 result.push(icon);
             }
+        }
+    }
+    return result;
+}
+export const selectedIcons = (icons, selected) => {
+    const result = [];
+    if(selected) {
+        for(const i of selected) {
+            result.push(icons[i]);
         }
     }
     return result;
