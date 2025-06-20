@@ -133,6 +133,7 @@ const wrapPromise = (promise) => {
 }
 
 const fetchIcons = () => {
+    console.log("fetching icons");
     const promise = fetch("../icons/icons.json")
         .then((res) => {
             if (!res.ok) {
@@ -272,27 +273,6 @@ const IconPackGenerator = () => {
         setBitDepth(evt.target.value);
     }
 
-    const iconSelReducer = (state, action) => {
-        if (action.type === 'check') {
-            const result = [];
-            for(let i = 0;i<state.length;++i) {
-                if(state[i]!==action.index) {
-                    result.push(state[i])
-                }
-            }
-            result.push(action.index);
-            return result;
-        } else if (action.type === 'uncheck') {
-            const result = [];
-            for(let i = 0;i<state.length;++i) {
-                if(state[i]!==action.index) {
-                    result.push(state[i])
-                }
-            }
-            return result;
-        }
-        throw Error(`Unknown action: ${action} `);
-    }
     const icons = useMemo(() => mapIcons(iconData.read()));
     
     const [iconSel, setIconSel] = useState([]);
@@ -382,10 +362,10 @@ const IconPackGenerator = () => {
             </>)
         }
         <br />
-        <label>Filter:<input type="text" style={{width: "100%"}} onChange={handleIconFilterChange} /></label><label>Selected:&nbsp;<span>{iconSel.length} ({computeBitmapsTotalBytes(icons,iconSel,bitDepth,clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined)}&nbsp;bytes)</span></label>
         <h4>Choose</h4>
+        <label>Filter:<input type="text" style={{width: "100%"}} onChange={handleIconFilterChange} /></label>
         <IconContainer icons={filteredIcons(icons, iconFilter,iconSel)} selected={iconSel} filter={iconFilter} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} iconChange={handleIconSelectedChange} height={"400px"}/>
-        <h4>Selected</h4>
+        <h4>Selected {iconSel.length}&nbsp;items ({computeBitmapsTotalBytes(icons,iconSel,bitDepth,clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined)}&nbsp;bytes)</h4>
         <IconContainer icons={selectedIcons(icons,iconSel)} selected={iconSel} filter={iconFilter} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} iconChange={handleIconSelectedChange} height={"200px"}/>
         {iconSel.length>0 && moduleId && moduleId.length>0 && (<>
         <Suspense fallback={(<div style={{height:"400px"}}><h3>Loading...</h3></div>)}>
@@ -401,7 +381,7 @@ const IconPackGenerator = () => {
 }
 
 const IconContainer = (prop) => {
-    return (<div id="iconContainer" style={{ backgroundColor: "white", display: "flex", flexFlow: "wrap", overflow: "auto", paddingLeft: "2%", width: "100%", height: prop.height }}>
+    return (<div id="iconContainer" style={{ borderColor: "black", borderWidth: "1px", borderStyle: "solid", backgroundColor: "white", display: "flex", flexFlow: "wrap", overflow: "auto", paddingLeft: "2%", width: "100%", height: prop.height }}>
         <>{prop.icons.map((icon) => (
             <IconBox key={icon.key} clampHeight={prop.clampHeight} clampWidth={prop.clampWidth} icon={icon} checked={prop.selected.indexOf(icon.index)>=0} onChange={(evt) => { prop.iconChange(icon,evt); }} />
         )
@@ -410,7 +390,7 @@ const IconContainer = (prop) => {
 }
 const CodeBox = (prop) => {
     const result=prop.gen.read();
-    return (<div style={{height: "400px", overflowY: "scroll"}}><SyntaxHighlighter style={prop.syntaxTheme} language={prop.language}>{result}</SyntaxHighlighter></div> );
+    return (<div style={{height: "400px", width: "100%", overflowY: "scroll"}}><SyntaxHighlighter style={prop.syntaxTheme} language={prop.language}>{result}</SyntaxHighlighter></div> );
     
 }
 
