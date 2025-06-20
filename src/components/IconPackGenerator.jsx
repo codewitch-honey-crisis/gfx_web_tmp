@@ -395,4 +395,3 @@ const CodeBox = (prop) => {
 }
 
 export default IconPackGenerator;
-//filterIcons(prop.icons, prop.filter,prop.selected)
