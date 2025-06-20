@@ -1,4 +1,4 @@
-import React, { memo, useReducer, useMemo, useState, useRef, useEffect, Suspense } from 'react';
+import React, { useMemo, useState, useRef, useEffect, Suspense } from 'react';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import clang from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
 import cpplang from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
@@ -6,17 +6,17 @@ import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hl
 import { generateByteArrayLiteral, toIdentifier } from './CGen';
 import IconBox from './IconBox';
 import './IconPackGenerator.css';
-import { filteredIcons, selectedIcons,rasterizeSvg,scaleIcon,computeBitmapsTotalBytes } from './Icons';
+import { filteredIcons, selectedIcons, rasterizeSvg, scaleIcon, computeBitmapsTotalBytes } from './Icons';
 const makeSafeName = (names, name) => {
     let j = 1;
     let cmp = name;
-    while(names.has(cmp)) {
+    while (names.has(cmp)) {
         cmp = `${name}${++j}`;
     }
-    names.set(cmp,cmp);
+    names.set(cmp, cmp);
     return cmp;
 }
-const generateHeaderAsync = async (icons, iconsSel,fileName,bitDepth,clampHeight, clampWidth, outputType, preview) => {
+const generateHeaderAsync = async (icons, iconsSel, fileName, bitDepth, clampHeight, clampWidth, outputType, preview) => {
     const names = new Map();
     const isGfx = (outputType != undefined && outputType.length > 0 && outputType != "C");
     const ident = toIdentifier(fileName);
@@ -32,72 +32,72 @@ const generateHeaderAsync = async (icons, iconsSel,fileName,bitDepth,clampHeight
     result += `#ifndef ${guard}\r\n`;
     result += `#define ${guard}\r\n`;
     result += "#include <stdint.h>\r\n";
-    if(isGfx) {
+    if (isGfx) {
         result += "#include \"gfx_pixel.hpp\"\r\n#include \"gfx_bitmap.hpp\"\r\n";
     }
-    result +="\r\n";
+    result += "\r\n";
     result += `#define ${ident.toUpperCase()}_BIT_DEPTH ${bitDepth}\r\n`
-    if(clampHeight && clampHeight>0) {
+    if (clampHeight && clampHeight > 0) {
         result += `#define ${ident.toUpperCase()}_HEIGHT ${clampHeight}\r\n`
-    } else if(clampWidth && clampWidth >0) {
+    } else if (clampWidth && clampWidth > 0) {
         result += `#define ${ident.toUpperCase()}_WIDTH ${clampWidth}\r\n`
     } else {
-        clampHeight=32;
+        clampHeight = 32;
         result += `#define ${ident.toUpperCase()}_HEIGHT ${clampHeight}\r\n`
     }
     result += "\r\n";
-    for(let i = 0;i<iconsSel.length;++i) {
+    for (let i = 0; i < iconsSel.length; ++i) {
         const icon = icons[iconsSel[i]];
-        const dim = scaleIcon(icon,clampWidth,clampHeight);
+        const dim = scaleIcon(icon, clampWidth, clampHeight);
         const id = makeSafeName(names, toIdentifier(`${fileName}_${icon.name}`));
-        if(!isGfx) {
-            result+= `#define ${id.toUpperCase()}_DIMENSIONS {${dim.width}, ${dim.height}}\r\n`
-            result+= "#ifdef __cplusplus\r\nextern \"C\"\r\n#else\r\nextern\r\n#endif\r\n";
+        if (!isGfx) {
+            result += `#define ${id.toUpperCase()}_DIMENSIONS {${dim.width}, ${dim.height}}\r\n`
+            result += "#ifdef __cplusplus\r\nextern \"C\"\r\n#else\r\nextern\r\n#endif\r\n";
         }
-        result+= `/// @brief "${icon.label}" - a ${dim.width}x${dim.height} alpha transparency map\r\n`;
-        if(isGfx) {
-            result+= `extern const gfx::const_bitmap<gfx::alpha_pixel<${bitDepth}>> ${id};\r\n`;
+        result += `/// @brief "${icon.label}" - a ${dim.width}x${dim.height} alpha transparency map\r\n`;
+        if (isGfx) {
+            result += `extern const gfx::const_bitmap<gfx::alpha_pixel<${bitDepth}>> ${id};\r\n`;
         } else {
-            result+= `uint8_t ${id}[];\r\n`;
+            result += `uint8_t ${id}[];\r\n`;
         }
     }
     result += `#endif // ${guard}\r\n\r\n`;
     result += `#ifdef ${impl}\r\n`;
     names.clear();
-    for(let i = 0;i<iconsSel.length;++i) {
+    for (let i = 0; i < iconsSel.length; ++i) {
         const icon = icons[iconsSel[i]];
-        const dim = scaleIcon(icon,clampWidth,clampHeight);
-        const id = makeSafeName(names,toIdentifier(`${fileName}_${icon.name}`));
-        const data_id = isGfx?`${id}_data`:id;
+        const dim = scaleIcon(icon, clampWidth, clampHeight);
+        const id = makeSafeName(names, toIdentifier(`${fileName}_${icon.name}`));
+        const data_id = isGfx ? `${id}_data` : id;
         let data;
-        if(!preview) {
-            data = await rasterizeSvg(icon.svg,icon.width,icon.height,dim.width,dim.height,bitDepth);
+        if (!preview) {
+            data = await rasterizeSvg(icon.svg, icon.width, icon.height, dim.width, dim.height, bitDepth);
         }
-        const widthFactor = bitDepth/8;
-        let widthBytes = Math.ceil(dim.width*widthFactor);
-        result+=generateByteArrayLiteral(data_id,preview?undefined:data.bitmap,isGfx,widthBytes);
-        result+="\r\n";
-        if(isGfx) {
-            result+= `const gfx::const_bitmap<gfx::alpha_pixel<${bitDepth}>> ${id}\r\n    ({${dim.width}, ${dim.height}}, ${data_id});\r\n`;
+        const widthFactor = bitDepth / 8;
+        let widthBytes = Math.ceil(dim.width * widthFactor);
+        result += generateByteArrayLiteral(data_id, preview ? undefined : data.bitmap, isGfx, widthBytes);
+        result += "\r\n";
+        if (isGfx) {
+            result += `const gfx::const_bitmap<gfx::alpha_pixel<${bitDepth}>> ${id}\r\n    ({${dim.width}, ${dim.height}}, ${data_id});\r\n`;
         }
-        if(i<iconsSel.length-1) {
-            result+="\r\n";
+        if (i < iconsSel.length - 1) {
+            result += "\r\n";
         }
     }
     result += `#endif // ${impl}\r\n`;
     return result;
 }
-const generateHeader = (icons, iconsSel,fileName,bitDepth,clampHeight, clampWidth, outputType, preview) => {
+const generateHeader = (icons, iconsSel, fileName, bitDepth, clampHeight, clampWidth, outputType, preview) => {
     let result;
     let err;
-    const promise = generateHeaderAsync(icons,iconsSel,fileName,bitDepth,clampHeight,clampWidth,outputType,preview)
-        .then((response) => result=response, (error)=>{err=error;})
+    const promise = generateHeaderAsync(icons, iconsSel, fileName, bitDepth, clampHeight, clampWidth, outputType, preview)
+        .then((response) => result = response, (error) => { err = error; })
     return {
         read() {
             if (err) {
                 throw err;
             }
-            if(!result) {
+            if (!result) {
                 throw promise;
             }
             return result;
@@ -182,7 +182,7 @@ const IconPackGenerator = () => {
     const [iconFilter, setIconFilter] = useState(undefined);
     const downloadUrl = useRef(undefined);
     let gencache;
-    
+
     useEffect(() => {
         const handleThemeChange = (event) => {
             setSyntaxTheme(event.matches ? a11yDark : a11yLight);
@@ -205,8 +205,8 @@ const IconPackGenerator = () => {
             if (k && k.length > 0) {
                 const icon = icons[k];
                 let search = "";
-                if(icon.search && icon.search.terms) { 
-                    for(let i = 0; i<icon.search.terms.length;++i) {
+                if (icon.search && icon.search.terms) {
+                    for (let i = 0; i < icon.search.terms.length; ++i) {
                         search += `${icon.search.terms[i]} `;
                     }
                 }
@@ -253,7 +253,7 @@ const IconPackGenerator = () => {
         return result;
     }
 
-   
+
     const handleIconFilterChange = (evt) => {
         setIconFilter(evt.target.value);
     }
@@ -274,16 +274,16 @@ const IconPackGenerator = () => {
     }
 
     const icons = useMemo(() => mapIcons(iconData.read()));
-    
+
     const [iconSel, setIconSel] = useState([]);
     const generateContentClip = () => {
-        if (!gencache && clampValue && clampValue>0 && moduleId && moduleId.length>0) {
+        if (!gencache && clampValue && clampValue > 0 && moduleId && moduleId.length > 0) {
             console.log("generating content to clipboard");
-            generateHeaderAsync(icons,iconSel,moduleId,parseInt(bitDepth),clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined,genType,false).then((result)=>{
+            generateHeaderAsync(icons, iconSel, moduleId, parseInt(bitDepth), clampAxis !== "width" ? parseInt(clampValue) : undefined, clampAxis === "width" ? parseInt(clampValue) : undefined, genType, false).then((result) => {
                 gencache = result;
                 navigator.clipboard.writeText(gencache);
             });
-            
+
         } else if (gencache) {
             console.log("writing content to clipboard");
             navigator.clipboard.writeText(gencache);
@@ -307,10 +307,10 @@ const IconPackGenerator = () => {
         setTimeout(() => { if (downloadUrl.current && downloadUrl.current.length > 0) { URL.revokeObjectURL(downloadUrl.current), downloadUrl.current = ""; } }, 500);
     }
     const generateContentFile = () => {
-        if (!gencache && clampValue && clampValue>0 && moduleId && moduleId.length>0) {
+        if (!gencache && clampValue && clampValue > 0 && moduleId && moduleId.length > 0) {
             console.log("generating content to file");
-            generateHeaderAsync(icons,iconSel,moduleId,parseInt(bitDepth),clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined,genType,false).then((result)=>{
-                gencache=result;
+            generateHeaderAsync(icons, iconSel, moduleId, parseInt(bitDepth), clampAxis !== "width" ? parseInt(clampValue) : undefined, clampAxis === "width" ? parseInt(clampValue) : undefined, genType, false).then((result) => {
+                gencache = result;
                 setGeneratedFileUrl();
             });
         } else if (gencache) {
@@ -318,13 +318,13 @@ const IconPackGenerator = () => {
             setGeneratedFileUrl();
         }
     }
-    const genAsync = generateHeader(icons,iconSel,moduleId,parseInt(bitDepth),clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined,genType,true);
+    const genAsync = generateHeader(icons, iconSel, moduleId, parseInt(bitDepth), clampAxis !== "width" ? parseInt(clampValue) : undefined, clampAxis === "width" ? parseInt(clampValue) : undefined, genType, true);
 
     const handleIconSelectedChange = (node, evt) => {
         if (evt.target.checked) {
             const result = [];
-            for(let i = 0;i<iconSel.length;++i) {
-                if(iconSel[i]!==node.index) {
+            for (let i = 0; i < iconSel.length; ++i) {
+                if (iconSel[i] !== node.index) {
                     result.push(iconSel[i])
                 }
             }
@@ -332,25 +332,25 @@ const IconPackGenerator = () => {
             setIconSel(result);
         } else {
             const result = [];
-            for(let i = 0;i<iconSel.length;++i) {
-                if(iconSel[i]!==node.index) {
+            for (let i = 0; i < iconSel.length; ++i) {
+                if (iconSel[i] !== node.index) {
                     result.push(iconSel[i])
                 }
             }
             setIconSel(result);
         }
-        
+
     }
     return (<>
         <table border={0}>
             <tbody>
                 <tr><td><label>Type:</label></td><td><select value={genType} onChange={handleGenTypeChange}><option value="C">Raw C/++</option><option value="GFX2">GFX 2.x</option></select></td></tr>
-                <tr><td>Module id:</td><td><input type="text" value={moduleId} onChange={handleModuleChange}/></td></tr>
-                <tr><td><select value={clampAxis} onChange={handleClampAxisChange}><option value="width">width</option><option value="height">height</option></select></td><td><input type="text" value={clampValue} onChange={handleClampValueChange}/></td></tr>
+                <tr><td>Module id:</td><td><input type="text" value={moduleId} onChange={handleModuleChange} /></td></tr>
+                <tr><td><select value={clampAxis} onChange={handleClampAxisChange}><option value="width">width</option><option value="height">height</option></select></td><td><input type="text" value={clampValue} onChange={handleClampValueChange} /></td></tr>
                 <tr><td><label>Bit depth:</label></td><td><select value={bitDepth} onChange={handleBitDepthChange}><option value="1">Monochrome</option><option value="2">2 bits/px</option><option value="4">4 bits/px</option><option value="8">8 bits/px</option></select></td></tr>
             </tbody>
         </table>
-        {clampValue && clampValue>0 && moduleId && moduleId.length>0 && iconSel && iconSel.length>0 && (
+        {clampValue && clampValue > 0 && moduleId && moduleId.length > 0 && iconSel && iconSel.length > 0 && (
             <>
                 <button onClick={generateContentFile}
                     className="submit"
@@ -363,17 +363,17 @@ const IconPackGenerator = () => {
         }
         <br />
         <h4>Choose</h4>
-        <label>Filter:<input type="text" style={{width: "100%"}} onChange={handleIconFilterChange} /></label>
-        <IconContainer icons={filteredIcons(icons, iconFilter,iconSel)} selected={iconSel} filter={iconFilter} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} iconChange={handleIconSelectedChange} height={"400px"}/>
-        <h4>Selected {iconSel.length}&nbsp;items ({computeBitmapsTotalBytes(icons,iconSel,bitDepth,clampAxis!=="width"?parseInt(clampValue):undefined,clampAxis==="width"?parseInt(clampValue):undefined)}&nbsp;bytes)</h4>
-        <IconContainer icons={selectedIcons(icons,iconSel)} selected={iconSel} filter={iconFilter} clampHeight={clampAxis==="height"?clampValue:undefined} clampWidth={clampAxis==="width"?clampValue:undefined} iconChange={handleIconSelectedChange} height={"200px"}/>
-        {iconSel.length>0 && moduleId && moduleId.length>0 && (<>
-        <Suspense fallback={(<div style={{height:"400px"}}><h3>Loading...</h3></div>)}>
-            <>
-                <h3>Preview</h3>
-                <CodeBox syntaxTheme={syntaxTheme} language={getGeneratedLanguage(genType)} gen={genAsync} />
-            </>
-        </Suspense>
+        <label>Filter:<input type="text" style={{ width: "100%" }} onChange={handleIconFilterChange} /></label>
+        <IconContainer icons={filteredIcons(icons, iconFilter, iconSel)} selected={iconSel} filter={iconFilter} clampHeight={clampAxis === "height" ? clampValue : undefined} clampWidth={clampAxis === "width" ? clampValue : undefined} iconChange={handleIconSelectedChange} height={"400px"} />
+        <h4>Selected {iconSel.length}&nbsp;items ({computeBitmapsTotalBytes(icons, iconSel, bitDepth, clampAxis !== "width" ? parseInt(clampValue) : undefined, clampAxis === "width" ? parseInt(clampValue) : undefined)}&nbsp;bytes)</h4>
+        <IconContainer icons={selectedIcons(icons, iconSel)} selected={iconSel} filter={iconFilter} clampHeight={clampAxis === "height" ? clampValue : undefined} clampWidth={clampAxis === "width" ? clampValue : undefined} iconChange={handleIconSelectedChange} height={"200px"} />
+        {iconSel.length > 0 && moduleId && moduleId.length > 0 && (<>
+            <Suspense fallback={(<div style={{ height: "400px" }}><h3>Loading...</h3></div>)}>
+                <>
+                    <h3>Preview</h3>
+                    <CodeBox syntaxTheme={syntaxTheme} language={getGeneratedLanguage(genType)} gen={genAsync} />
+                </>
+            </Suspense>
         </>)}
     </>)
 
@@ -383,15 +383,15 @@ const IconPackGenerator = () => {
 const IconContainer = (prop) => {
     return (<div id="iconContainer" style={{ borderColor: "black", borderWidth: "1px", borderStyle: "solid", backgroundColor: "white", display: "flex", flexFlow: "wrap", overflow: "auto", paddingLeft: "2%", width: "100%", height: prop.height }}>
         <>{prop.icons.map((icon) => (
-            <IconBox key={icon.key} clampHeight={prop.clampHeight} clampWidth={prop.clampWidth} icon={icon} checked={prop.selected.indexOf(icon.index)>=0} onChange={(evt) => { prop.iconChange(icon,evt); }} />
+            <IconBox key={icon.key} clampHeight={prop.clampHeight} clampWidth={prop.clampWidth} icon={icon} checked={prop.selected.indexOf(icon.index) >= 0} onChange={(evt) => { prop.iconChange(icon, evt); }} />
         )
         )}</>
     </div>);
 }
 const CodeBox = (prop) => {
-    const result=prop.gen.read();
-    return (<div style={{height: "400px", width: "100%", overflowY: "scroll"}}><SyntaxHighlighter style={prop.syntaxTheme} language={prop.language}>{result}</SyntaxHighlighter></div> );
-    
+    const result = prop.gen.read();
+    return (<div style={{ height: "400px", width: "100%", overflowY: "scroll" }}><SyntaxHighlighter style={prop.syntaxTheme} language={prop.language}>{result}</SyntaxHighlighter></div>);
+
 }
 
 export default IconPackGenerator;

@@ -12,8 +12,7 @@ const IconBox = (prop) => {
     return (<><div style={{overflow: "hidden", padding: "1% 1% 1% 1%" }}>
         <center>
             <div dangerouslySetInnerHTML={{ __html: prop.icon.svg }} style={style}></div>
-            <label className={"inputButtonCheckLabel"} style={{ width: "80%", overflowY: "hidden" }}>
-                
+            <label className={"inputButtonCheckLabel"} style={{ width: "80%", overflowY: "hidden" }}>        
                 <input type="checkbox" className={"inputButtonCheck"} checked={prop.checked} onChange={prop.onChange} />
                 {prop.icon.label}
             </label>
