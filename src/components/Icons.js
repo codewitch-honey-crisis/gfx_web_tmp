@@ -127,10 +127,10 @@ export const rasterizeSvg = (svgElem, width, height, maxWidth, maxHeight, bitDep
 export const scaleIcon = (icon,clampWidth,clampHeight) => {
     if(clampHeight && clampHeight>0) {
         const scale = clampHeight/icon.height;
-        return {width: Math.ceil(icon.width*scale), height: clampHeight };
+        return {width: Math.ceil(icon.width*scale), height: clampHeight, scale: scale };
     } else if(clampWidth && clampWidth >0) {
         const scale = clampWidth/icon.width;
-        return {width: clampWidth, height: Math.ceil(icon.height*scale) };
+        return {width: clampWidth, height: Math.ceil(icon.height*scale), scale: scale };
     } else {
         throw new Error("clampWidth or clampHeight must be specified");
     }

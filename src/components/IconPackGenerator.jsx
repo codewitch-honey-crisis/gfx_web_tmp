@@ -3,7 +3,7 @@ import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import clang from 'react-syntax-highlighter/dist/esm/languages/hljs/c';
 import cpplang from 'react-syntax-highlighter/dist/esm/languages/hljs/cpp';
 import { a11yDark, a11yLight } from 'react-syntax-highlighter/dist/esm/styles/hljs';
-import { generateByteArrayLiteral, toIdentifier } from './CGen';
+import { generateByteArrayLiteral, generateStringLiteral, toIdentifier } from './CGen';
 import IconBox from './IconBox';
 import './IconPackGenerator.css';
 import { filteredIcons, selectedIcons, rasterizeSvg, scaleIcon, computeBitmapsTotalBytes } from './Icons';
@@ -33,10 +33,16 @@ const generateHeaderAsync = async (icons, iconsSel, fileName, bitDepth, clampHei
     result += `#define ${guard}\r\n`;
     result += "#include <stdint.h>\r\n";
     if (isGfx) {
-        result += "#include \"gfx_pixel.hpp\"\r\n#include \"gfx_bitmap.hpp\"\r\n";
+        if(bitDepth>0) {
+            result += "#include \"gfx_pixel.hpp\"\r\n#include \"gfx_bitmap.hpp\"\r\n";
+        } else {
+            result +="#include \"gfx_core.hpp\"\r\n";
+        }
     }
     result += "\r\n";
-    result += `#define ${ident.toUpperCase()}_BIT_DEPTH ${bitDepth}\r\n`
+    if(bitDepth>0) {
+        result += `#define ${ident.toUpperCase()}_BIT_DEPTH ${bitDepth}\r\n`
+    }
     if (clampHeight && clampHeight > 0) {
         result += `#define ${ident.toUpperCase()}_HEIGHT ${clampHeight}\r\n`
     } else if (clampWidth && clampWidth > 0) {
@@ -45,20 +51,44 @@ const generateHeaderAsync = async (icons, iconsSel, fileName, bitDepth, clampHei
         clampHeight = 32;
         result += `#define ${ident.toUpperCase()}_HEIGHT ${clampHeight}\r\n`
     }
+
     result += "\r\n";
     for (let i = 0; i < iconsSel.length; ++i) {
         const icon = icons[iconsSel[i]];
         const dim = scaleIcon(icon, clampWidth, clampHeight);
         const id = makeSafeName(names, toIdentifier(`${fileName}_${icon.name}`));
         if (!isGfx) {
-            result += `#define ${id.toUpperCase()}_DIMENSIONS {${dim.width}, ${dim.height}}\r\n`
+            if(bitDepth==0) {
+                result += `#define ${id.toUpperCase()}_DIMENSIONS {${icon.width}, ${icon.height}}\r\n`;
+                result += `#define ${id.toUpperCase()}_SCALED_DIMENSIONS {${dim.width}, ${dim.height}}\r\n`;
+                result += `#define ${id.toUpperCase()}_SCALE (${dim.scale})\r\n`;
+            } else {
+                result += `#define ${id.toUpperCase()}_DIMENSIONS {${dim.width}, ${dim.height}}\r\n`;
+            }
             result += "#ifdef __cplusplus\r\nextern \"C\"\r\n#else\r\nextern\r\n#endif\r\n";
         }
-        result += `/// @brief "${icon.label}" - a ${dim.width}x${dim.height} alpha transparency map\r\n`;
-        if (isGfx) {
-            result += `extern const gfx::const_bitmap<gfx::alpha_pixel<${bitDepth}>> ${id};\r\n`;
+        if(bitDepth>0) {
+            result += `/// @brief "${icon.label}" - a ${dim.width}x${dim.height} alpha transparency map\r\n`;
+            if (isGfx) {
+                result += `const gfx::const_bitmap<gfx::alpha_pixel<${bitDepth}>> ${id};\r\n`;
+            } else {
+                result += `const uint8_t ${id}[];\r\n`;
+            }
         } else {
-            result += `uint8_t ${id}[];\r\n`;
+            if(isGfx) {
+                result+= `/// @brief "${icon.label}" dimensions\r\n`;
+                result+= `constexpr static const gfx::sizef ${id}_dimensions(${icon.width},${icon.height});\r\n`;
+                result+= `/// @brief "${icon.label}" scaled dimensions\r\n`;
+                result+= `constexpr static const gfx::size16 ${id}_scaled_dimensions(${dim.width},${dim.height});\r\n`;
+                result+= `/// @brief "${icon.label}" target scale\r\n`;
+                result+= `constexpr static const float ${id}_scale = ${dim.scale};\r\n`;
+            }
+            result += `/// @brief "${icon.label}" - a SVG vector icon\r\n`;
+            if (isGfx) {
+                result += `gfx::const_buffer_stream ${id};\r\n`;
+            } else {
+                result += `const char* ${id};\r\n`;
+            }
         }
     }
     result += `#endif // ${guard}\r\n\r\n`;
@@ -69,19 +99,32 @@ const generateHeaderAsync = async (icons, iconsSel, fileName, bitDepth, clampHei
         const dim = scaleIcon(icon, clampWidth, clampHeight);
         const id = makeSafeName(names, toIdentifier(`${fileName}_${icon.name}`));
         const data_id = isGfx ? `${id}_data` : id;
-        let data;
-        if (!preview) {
-            data = await rasterizeSvg(icon.svg, icon.width, icon.height, dim.width, dim.height, bitDepth);
-        }
-        const widthFactor = bitDepth / 8;
-        let widthBytes = Math.ceil(dim.width * widthFactor);
-        result += generateByteArrayLiteral(data_id, preview ? undefined : data.bitmap, isGfx, widthBytes);
-        result += "\r\n";
-        if (isGfx) {
-            result += `const gfx::const_bitmap<gfx::alpha_pixel<${bitDepth}>> ${id}\r\n    ({${dim.width}, ${dim.height}}, ${data_id});\r\n`;
-        }
-        if (i < iconsSel.length - 1) {
+        if(bitDepth>0) {
+            let data;
+            if (!preview) {
+                data = await rasterizeSvg(icon.svg, icon.width, icon.height, dim.width, dim.height, bitDepth);
+            }
+            const widthFactor = bitDepth / 8;
+            let widthBytes = Math.ceil(dim.width * widthFactor);
+            result += generateByteArrayLiteral(data_id, preview ? undefined : data.bitmap, isGfx, widthBytes);
             result += "\r\n";
+            if (isGfx) {
+                result += `const gfx::const_bitmap<gfx::alpha_pixel<${bitDepth}>> ${id}\r\n    ({${dim.width}, ${dim.height}}, ${data_id});\r\n`;
+            }
+            if (i < iconsSel.length - 1) {
+                result += "\r\n";
+            }
+        } else {
+            const enc = new TextEncoder("utf-8");
+            const buf = enc.encode(icon.svg).buffer
+            result += generateStringLiteral(data_id,preview?undefined:buf,isGfx);
+            result += "\r\n";
+            if (isGfx) {
+                result += `gfx::const_buffer_stream ${id}\r\n    ((const uint8_t*)${data_id},${icon.svg.length});\r\n`;
+            }
+            if (i < iconsSel.length - 1) {
+                result += "\r\n";
+            }
         }
     }
     result += `#endif // ${impl}\r\n`;
@@ -347,7 +390,7 @@ const IconPackGenerator = () => {
                 <tr><td><label>Type:</label></td><td><select value={genType} onChange={handleGenTypeChange}><option value="C">Raw C/++</option><option value="GFX2">GFX 2.x</option></select></td></tr>
                 <tr><td>Module id:</td><td><input type="text" value={moduleId} onChange={handleModuleChange} /></td></tr>
                 <tr><td><select value={clampAxis} onChange={handleClampAxisChange}><option value="width">width</option><option value="height">height</option></select></td><td><input type="text" value={clampValue} onChange={handleClampValueChange} /></td></tr>
-                <tr><td><label>Bit depth:</label></td><td><select value={bitDepth} onChange={handleBitDepthChange}><option value="1">Monochrome</option><option value="2">2 bits/px</option><option value="4">4 bits/px</option><option value="8">8 bits/px</option></select></td></tr>
+                <tr><td><label>Bit depth:</label></td><td><select value={bitDepth} onChange={handleBitDepthChange}><option value="1">Monochrome</option><option value="2">2 bits/px</option><option value="4">4 bits/px</option><option value="8">8 bits/px</option><option value="0">vector</option></select></td></tr>
             </tbody>
         </table>
         {clampValue && clampValue > 0 && moduleId && moduleId.length > 0 && iconSel && iconSel.length > 0 && (

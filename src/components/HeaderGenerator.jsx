@@ -685,6 +685,8 @@ const HeaderGenerator = () => {
                         let w = imageDimensions.width;
                         let h = imageDimensions.height;
                         pic.style = `width: ${w}px; height: ${h}px`;
+                        pic.lastElementChild.width = w;
+                        pic.lastElementChild.height = h;
                     });
                 }
             } else {
