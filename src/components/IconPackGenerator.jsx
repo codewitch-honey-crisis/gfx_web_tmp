@@ -85,7 +85,7 @@ const generateHeaderAsync = async (icons, iconsSel, fileName, bitDepth, clampHei
             }
             result += `/// @brief "${icon.label}" - a SVG vector icon\r\n`;
             if (isGfx) {
-                result += `gfx::const_buffer_stream ${id};\r\n`;
+                result += `extern gfx::const_buffer_stream ${id};\r\n`;
             } else {
                 result += `const char* ${id};\r\n`;
             }
