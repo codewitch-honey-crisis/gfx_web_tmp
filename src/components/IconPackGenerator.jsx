@@ -120,7 +120,7 @@ const generateHeaderAsync = async (icons, iconsSel, fileName, bitDepth, clampHei
             result += generateStringLiteral(data_id,preview?undefined:buf,isGfx);
             result += "\r\n";
             if (isGfx) {
-                result += `gfx::const_buffer_stream ${id}\r\n    ((const uint8_t*)${data_id},${icon.svg.length});\r\n`;
+                result += `gfx::const_buffer_stream ${id}\r\n    ((const uint8_t*)${data_id}, ${icon.svg.length});\r\n`;
             }
             if (i < iconsSel.length - 1) {
                 result += "\r\n";
