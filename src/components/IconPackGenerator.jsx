@@ -36,7 +36,7 @@ const generateHeaderAsync = async (icons, iconsSel, fileName, bitDepth, clampHei
         if(bitDepth>0) {
             result += "#include \"gfx_pixel.hpp\"\r\n#include \"gfx_bitmap.hpp\"\r\n";
         } else {
-            result +="#include \"gfx_core.hpp\"\r\n";
+            result +="#include \"gfx_core.hpp\"\r\n#include \"gfx_positioning.hpp\"\r\n";
         }
     }
     result += "\r\n";
@@ -408,7 +408,8 @@ const IconPackGenerator = () => {
         <h4>Choose</h4>
         <label>Filter:<input type="text" style={{ width: "100%" }} onChange={handleIconFilterChange} /></label>
         <IconContainer icons={filteredIcons(icons, iconFilter, iconSel)} selected={iconSel} filter={iconFilter} clampHeight={clampAxis === "height" ? clampValue : undefined} clampWidth={clampAxis === "width" ? clampValue : undefined} iconChange={handleIconSelectedChange} height={"400px"} />
-        <h4>Selected {iconSel.length}&nbsp;items ({computeBitmapsTotalBytes(icons, iconSel, bitDepth, clampAxis !== "width" ? parseInt(clampValue) : undefined, clampAxis === "width" ? parseInt(clampValue) : undefined)}&nbsp;bytes)</h4>
+        <h4>Selected {iconSel.length}&nbsp;items 
+        {(bitDepth>0) && (<>&nbsp;({computeBitmapsTotalBytes(icons, iconSel, bitDepth, clampAxis !== "width" ? parseInt(clampValue) : undefined, clampAxis === "width" ? parseInt(clampValue) : undefined)}&nbsp;bytes)</>)}</h4>
         <IconContainer icons={selectedIcons(icons, iconSel)} selected={iconSel} filter={iconFilter} clampHeight={clampAxis === "height" ? clampValue : undefined} clampWidth={clampAxis === "width" ? clampValue : undefined} iconChange={handleIconSelectedChange} height={"200px"} />
         {iconSel.length > 0 && moduleId && moduleId.length > 0 && (<>
             <Suspense fallback={(<div style={{ height: "400px" }}><h3>Loading...</h3></div>)}>
