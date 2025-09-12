@@ -215,7 +215,7 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
             if (isSvg || isTvg) {
                 if (imgSize) {
                     //result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
-                    result += `const constexpr gfx::size16 ${identifier}_dimensions(${imgSize.width}, ${imgSize.height});\r\n\r\n`;
+                    result += `const constexpr gfx::sizef ${identifier}_dimensions(${imgSize.width}, ${imgSize.height});\r\n\r\n`;
                 }
             }
             result += `/// @brief A ${commentPart}\r\n`;
