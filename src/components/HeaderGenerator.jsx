@@ -214,7 +214,8 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
             result += "#include \"gfx_core.hpp\"\r\n\r\n";
             if (isSvg || isTvg) {
                 if (imgSize) {
-                    result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
+                    //result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
+                    result += `const constexpr gfx::size16 ${identifier}_dimensions(${imgSize.width}, ${imgSize.height});\r\n\r\n`;
                 }
             }
             result += `/// @brief A ${commentPart}\r\n`;
