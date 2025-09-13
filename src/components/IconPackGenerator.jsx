@@ -33,6 +33,7 @@ const generateHeaderAsync = async (icons, iconsSel, fileName, bitDepth, clampHei
     result += `#define ${guard}\r\n`;
     result += "#include <stdint.h>\r\n";
     if (isGfx) {
+        result += "#include <stddef.h>\r\n";
         if(bitDepth>0) {
             result += "#include \"gfx_pixel.hpp\"\r\n#include \"gfx_bitmap.hpp\"\r\n";
         } else {
@@ -40,18 +41,31 @@ const generateHeaderAsync = async (icons, iconsSel, fileName, bitDepth, clampHei
         }
     }
     result += "\r\n";
-    if(bitDepth>0) {
-        result += `#define ${ident.toUpperCase()}_BIT_DEPTH ${bitDepth}\r\n`
-    }
-    if (clampHeight && clampHeight > 0) {
-        result += `#define ${ident.toUpperCase()}_HEIGHT ${clampHeight}\r\n`
-    } else if (clampWidth && clampWidth > 0) {
-        result += `#define ${ident.toUpperCase()}_WIDTH ${clampWidth}\r\n`
+    if(!isGfx) {
+        if(bitDepth>0) {
+            result += `#define ${ident.toUpperCase()}_BIT_DEPTH ${bitDepth}\r\n`;
+        }
+        if (clampHeight && clampHeight > 0) {
+            result += `#define ${ident.toUpperCase()}_HEIGHT ${clampHeight}\r\n`;
+        } else if (clampWidth && clampWidth > 0) {
+            result += `#define ${ident.toUpperCase()}_WIDTH ${clampWidth}\r\n`;
+        } else {
+            clampHeight = 32;
+            result += `#define ${ident.toUpperCase()}_HEIGHT ${clampHeight}\r\n`;
+        }
     } else {
-        clampHeight = 32;
-        result += `#define ${ident.toUpperCase()}_HEIGHT ${clampHeight}\r\n`
+        if(bitDepth>0) {
+            result += `constexpr static const size_t ${ident}_bit_depth = ${bitDepth};\r\n`;
+        }
+        if (clampHeight && clampHeight > 0) {
+            result += `constexpr static const uint16_t ${ident}_height = ${clampHeight};\r\n`;
+        } else if (clampWidth && clampWidth > 0) {
+            result += `constexpr static const uint16_t ${ident}_width = ${clampWidth};\r\n`;
+        } else {
+            clampHeight = 32;
+            result += `constexpr static const uint16_t ${ident}_height = ${clampHeight};\r\n`;
+        }
     }
-
     result += "\r\n";
     for (let i = 0; i < iconsSel.length; ++i) {
         const icon = icons[iconsSel[i]];
