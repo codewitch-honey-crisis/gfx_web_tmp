@@ -219,14 +219,14 @@ const generateHeader = (identifier, fileInfo, imageDim, imageScale, fontSetIndex
             result += `/// @brief A ${commentPart}\r\n`;
             result += `extern gfx::ttf_font ${identifier};\r\n`;
         } else {
-            result += "#include \"gfx_positioning.hpp\"\r\n\r\n";
+            result += "#include \"gfx_core.hpp\"\r\n";
             if (isSvg || isTvg) {
                 if (imgSize) {
-                    //result += `#define ${identifier.toUpperCase()}_DIMENSIONS {${imgSize.width}, ${imgSize.height}}\r\n\r\n`
-                    result += `const constexpr gfx::sizef ${identifier}_dimensions(${imgSize.width}, ${imgSize.height});\r\n\r\n`;
+                    result += "#include \"gfx_positioning.hpp\"\r\n\r\n";
+                    result += `const constexpr gfx::sizef ${identifier}_dimensions(${imgSize.width}, ${imgSize.height});\r\n`;
                 }
             }
-            result += `/// @brief A ${commentPart}\r\n`;
+            result += `\r\n/// @brief A ${commentPart}\r\n`;
             result += `extern gfx::const_buffer_stream ${identifier};\r\n`;
         }
         if (exposeStream && isSpecialized) {
