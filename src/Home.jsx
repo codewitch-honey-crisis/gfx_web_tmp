@@ -7,7 +7,8 @@ function Home() {
       <a href="https://github.com/codewitch-honey-crisis/gfx">GitHub Repo</a>
       <h1>GFX</h1>
       <a href="./header/index.html">Header generator</a><br />
-      <a href="./icon-pack/index.html">Icon pack generator</a>
+      <a href="./icon-pack/index.html">Icon pack generator</a><br />
+      <a href="./svg-gen/index.html">SVG generator</a>
     </>
   );
 }

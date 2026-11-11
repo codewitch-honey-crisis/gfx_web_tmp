@@ -15,7 +15,8 @@ export default defineConfig({
         main: resolve(__dirname, 'index.html'),
         docs: resolve(__dirname, 'docs/index.html'),
         header: resolve(__dirname, 'header/index.html'),
-        icon_pack: resolve(__dirname, 'icon-pack/index.html')
+        icon_pack: resolve(__dirname, 'icon-pack/index.html'),
+        svg_gen: resolve(__dirname, 'svg-gen/index.html')
       },
     },
   },

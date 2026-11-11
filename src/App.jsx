@@ -5,6 +5,7 @@ import Docs from './docs/Docs.jsx'
 import NoPage from './NoPage.jsx';
 import Header from './header/Header.jsx';
 import IconPack from './icon-pack/IconPack.jsx';
+import SvgGen from './svg-gen/SvgGen.jsx';
 function App() {
   return (
     <BrowserRouter>
@@ -17,6 +18,8 @@ function App() {
           <Route path="/gfx_web/header/index.html" element={<Header />} />
           <Route path="/gfx_web/icon-pack/" element={<IconPack />} />
           <Route path="/gfx_web/icon-pack/index.html" element={<IconPack />} />
+          <Route path="/gfx_web/svg-gen/" element={<SvgGen />} />
+          <Route path="/gfx_web/svg-gen/index.html" element={<SvgGen />} />
           <Route path="*" element={<NoPage />} />
         
       </Routes>

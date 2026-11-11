@@ -1,0 +1,120 @@
+.submit {
+  margin-top: 1rem;
+  background-color: red;
+  color: white;
+  border-color: #555;
+}
+.submit:hover {
+  text-decoration: underline;
+}
+
+.fileType {
+    color: brown
+}
+.fileSize {
+    color:darkblue
+}
+.fileDim {
+    color:blueviolet
+}
+.fontHeight {
+    color:darkcyan
+}
+.fontGlyphCount {
+    color: darkslateblue
+}
+.genType {
+    color:green;
+}
+
+.border-drag {
+    padding: 10%;
+    border-style: dashed;
+    border-width: 3px;
+    border-radius: 5%;
+    border-color: #555;
+}
+
+@media (prefers-color-scheme: dark) {
+    .submit {
+        margin-top: 1rem;
+        background-color: red;
+        color: white
+    }
+    .fileType {
+        color: goldenrod;
+    }
+    .fileSize {
+        color:cadetblue;
+    }
+    .fileDim {
+        color:coral;
+    }
+    .fontHeight {
+        color:cyan
+    }
+    .fontGlyphCount {
+        color: lightslategray
+    }
+    .genType {
+        color:chartreuse;
+    }
+    
+    .border-drag {
+        padding: 10%;
+        border-style: dashed;
+        border-width: 3px;
+        border-radius: 5%;
+        border-color: gray;
+    }
+
+}
+/* SVG generator additions */
+.svgShapes {
+    color: darkgreen;
+}
+.svgPath {
+    color: darkslateblue;
+}
+.svgColors {
+    color: darkmagenta;
+}
+.svgDetail {
+    color: gray;
+    font-size: 0.9em;
+}
+.error {
+    color: red;
+}
+.warnings {
+    color: darkorange;
+}
+.warnings h4 {
+    margin-bottom: 0.25rem;
+}
+#svgContainer {
+    max-width: 100%;
+    overflow: auto;
+}
+#svgContainer img {
+    max-width: 100%;
+    height: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+    .svgShapes {
+        color: lightgreen;
+    }
+    .svgPath {
+        color: lightsteelblue;
+    }
+    .svgColors {
+        color: violet;
+    }
+    .svgDetail {
+        color: darkgray;
+    }
+    .warnings {
+        color: orange;
+    }
+}
