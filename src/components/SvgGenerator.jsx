@@ -184,7 +184,9 @@ const SvgGenerator = () => {
                                         <span className="svgDetail"> ({formatCounts(stats.segments, SEGMENT_ORDER)})</span>
                                     </li>)}
                                 {stats.groups > 0 && (<li>Groups: <span className="svgPath">{formatNumber(stats.groups)}</span></li>)}
-                                <li>Unique colors: <span className="svgColors">{formatNumber(stats.uniqueColors)}</span></li>
+                                <li>Unique colors: <span className="svgColors">{formatNumber(stats.uniqueColors)}</span>
+                                    {stats.namedColors > 0 && (<span className="svgDetail"> ({formatNumber(stats.namedColors)} with gfx names)</span>)}
+                                </li>
                                 {stats.gradients > 0 && (
                                     <li>Gradients: <span className="svgColors">{formatNumber(stats.gradients)} defined</span>
                                         <span className="svgDetail"> ({formatNumber(stats.gradientFills)} fills, {formatNumber(stats.gradientStrokes)} strokes use one)</span>

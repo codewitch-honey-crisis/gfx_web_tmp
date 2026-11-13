@@ -213,8 +213,71 @@ const parseTransform = (text) => {
 // ---------------------------------------------------------------------------------------------
 const clampByte = (v) => (v < 0 ? 0 : v > 255 ? 255 : roundAway(v));
 const rgba = (r, g, b, a) => ({ r: clampByte(r), g: clampByte(g), b: clampByte(b), a: clampByte(a) });
-const rgbaWithAlpha = (c, factor) => rgba(c.r, c.g, c.b, c.a * factor);
-const rgbaToCpp = (c) => `gfx::vector_pixel(${c.a}, ${c.r}, ${c.g}, ${c.b})`;
+// `name` remembers the CSS keyword a color came from, so aqua/cyan and fuchsia/magenta keep the SVG's spelling
+const rgbaWithAlpha = (c, factor) => ({ ...rgba(c.r, c.g, c.b, c.a * factor), name: c.name });
+const rgbaKey = (c) => `${c.r},${c.g},${c.b},${c.a}`;
+const rgbaToRawCpp = (c) => `gfx::vector_pixel(${c.a}, ${c.r}, ${c.g}, ${c.b})`;
+
+// gfx's predefined colors (gfx::color<gfx::vector_pixel>::...), with the exact 8-bit RGBA each one
+// resolves to. Some are X11 rather than CSS values (dark_sea_green), so matching is by value only.
+// Where two names share a value, the first listed is used unless the SVG spelled the other one.
+const GFX_COLOR_TABLE = [
+    ["transparent", 0, 0, 0, 0], ["alice_blue", 240, 248, 255, 255], ["antique_white", 250, 235, 215, 255], ["cyan", 0, 255, 255, 255],
+    ["aqua", 0, 255, 255, 255], ["aquamarine", 127, 255, 212, 255], ["azure", 240, 255, 255, 255], ["beige", 245, 245, 220, 255],
+    ["bisque", 255, 228, 196, 255], ["black", 0, 0, 0, 255], ["blanched_almond", 255, 235, 205, 255], ["blue", 0, 0, 255, 255],
+    ["blue_violet", 138, 43, 226, 255], ["brown", 165, 42, 42, 255], ["burly_wood", 222, 184, 135, 255], ["cadet_blue", 95, 158, 160, 255],
+    ["chartreuse", 127, 255, 0, 255], ["chocolate", 210, 105, 30, 255], ["coral", 255, 127, 80, 255], ["cornflower_blue", 100, 149, 237, 255],
+    ["cornsilk", 255, 248, 220, 255], ["crimson", 220, 20, 60, 255], ["dark_blue", 0, 0, 139, 255], ["dark_cyan", 0, 139, 139, 255],
+    ["dark_goldenrod", 184, 134, 11, 255], ["dark_gray", 169, 169, 169, 255], ["dark_green", 0, 100, 0, 255], ["dark_khaki", 189, 183, 107, 255],
+    ["dark_magenta", 139, 0, 139, 255], ["dark_olive_green", 85, 107, 47, 255], ["dark_orange", 255, 140, 0, 255], ["dark_orchid", 153, 50, 204, 255],
+    ["dark_red", 139, 0, 0, 255], ["dark_salmon", 233, 150, 122, 255], ["dark_sea_green", 143, 188, 139, 255], ["dark_slate_blue", 72, 61, 139, 255],
+    ["dark_slate_gray", 47, 79, 79, 255], ["dark_turquoise", 0, 206, 209, 255], ["dark_violet", 148, 0, 211, 255], ["deep_pink", 255, 20, 147, 255],
+    ["deep_sky_blue", 0, 191, 255, 255], ["dim_gray", 105, 105, 105, 255], ["dodger_blue", 30, 144, 255, 255], ["firebrick", 178, 34, 34, 255],
+    ["floral_white", 255, 250, 240, 255], ["forest_green", 34, 139, 34, 255], ["magenta", 255, 0, 255, 255], ["fuchsia", 255, 0, 255, 255],
+    ["gainsboro", 220, 220, 220, 255], ["ghost_white", 248, 248, 255, 255], ["gold", 255, 215, 0, 255], ["goldenrod", 218, 165, 32, 255],
+    ["gray", 128, 128, 128, 255], ["green", 0, 128, 0, 255], ["green_yellow", 173, 255, 47, 255], ["honeydew", 240, 255, 240, 255],
+    ["hot_pink", 255, 105, 180, 255], ["indian_red", 205, 92, 92, 255], ["indigo", 75, 0, 130, 255], ["ivory", 255, 255, 240, 255],
+    ["khaki", 240, 230, 140, 255], ["lavender", 230, 230, 250, 255], ["lavender_blush", 255, 240, 245, 255], ["lawn_green", 124, 252, 0, 255],
+    ["lemon_chiffon", 255, 250, 205, 255], ["light_blue", 173, 216, 230, 255], ["light_coral", 240, 128, 128, 255], ["light_cyan", 224, 255, 255, 255],
+    ["light_goldenrod_yellow", 250, 250, 210, 255], ["light_green", 144, 238, 144, 255], ["light_gray", 211, 211, 211, 255], ["light_pink", 255, 182, 193, 255],
+    ["light_salmon", 255, 160, 122, 255], ["light_sea_green", 32, 178, 170, 255], ["light_sky_blue", 135, 206, 250, 255], ["light_slate_gray", 119, 136, 153, 255],
+    ["light_steel_blue", 176, 196, 222, 255], ["light_yellow", 255, 255, 224, 255], ["lime", 0, 255, 0, 255], ["lime_green", 50, 205, 50, 255],
+    ["linen", 250, 240, 230, 255], ["maroon", 128, 0, 0, 255], ["medium_aquamarine", 102, 205, 170, 255], ["medium_blue", 0, 0, 205, 255],
+    ["medium_orchid", 186, 85, 211, 255], ["medium_purple", 147, 112, 219, 255], ["medium_sea_green", 60, 179, 113, 255], ["medium_slate_blue", 123, 104, 238, 255],
+    ["medium_spring_green", 0, 250, 154, 255], ["medium_turquoise", 72, 209, 204, 255], ["medium_violet_red", 199, 21, 133, 255], ["midnight_blue", 25, 25, 112, 255],
+    ["mint_cream", 245, 255, 250, 255], ["misty_rose", 255, 228, 225, 255], ["moccasin", 255, 228, 181, 255], ["navajo_white", 255, 222, 173, 255],
+    ["navy", 0, 0, 128, 255], ["old_lace", 253, 245, 230, 255], ["olive", 128, 128, 0, 255], ["olive_drab", 107, 142, 35, 255],
+    ["orange", 255, 165, 0, 255], ["orange_red", 255, 69, 0, 255], ["orchid", 218, 112, 214, 255], ["pale_goldenrod", 238, 232, 170, 255],
+    ["pale_green", 152, 251, 152, 255], ["pale_turquoise", 175, 238, 238, 255], ["pale_violet_red", 219, 112, 147, 255], ["papaya_whip", 255, 239, 213, 255],
+    ["peach_puff", 255, 218, 185, 255], ["peru", 205, 133, 63, 255], ["pink", 255, 192, 203, 255], ["plum", 221, 160, 221, 255],
+    ["powder_blue", 176, 224, 230, 255], ["purple", 128, 0, 128, 255], ["red", 255, 0, 0, 255], ["rosy_brown", 188, 143, 143, 255],
+    ["royal_blue", 65, 105, 225, 255], ["saddle_brown", 139, 69, 19, 255], ["salmon", 250, 128, 114, 255], ["sandy_brown", 244, 164, 96, 255],
+    ["sea_green", 46, 139, 87, 255], ["sea_shell", 255, 245, 238, 255], ["sienna", 160, 82, 45, 255], ["silver", 192, 192, 192, 255],
+    ["sky_blue", 135, 206, 235, 255], ["slate_blue", 106, 90, 205, 255], ["slate_gray", 112, 128, 144, 255], ["snow", 255, 250, 250, 255],
+    ["spring_green", 0, 255, 127, 255], ["steel_blue", 70, 130, 180, 255], ["tan", 210, 180, 140, 255], ["teal", 0, 128, 128, 255],
+    ["thistle", 216, 191, 216, 255], ["tomato", 255, 99, 71, 255], ["turquoise", 64, 224, 208, 255], ["violet", 238, 130, 238, 255],
+    ["wheat", 245, 222, 179, 255], ["white", 255, 255, 255, 255], ["white_smoke", 245, 245, 245, 255], ["yellow", 255, 255, 0, 255],
+    ["yellow_green", 154, 205, 50, 255],
+];
+const GFX_COLORS = (() => {
+    const m = new Map();
+    for (const [name, r, g, b, a] of GFX_COLOR_TABLE) {
+        const k = `${r},${g},${b},${a}`;
+        if (!m.has(k)) m.set(k, []);
+        m.get(k).push(name);
+    }
+    return m;
+})();
+// the gfx color name for an exact match, or null
+const gfxColorName = (c) => {
+    const names = GFX_COLORS.get(rgbaKey(c));
+    if (!names) return null;
+    if (c.name) {
+        const hinted = names.find((n) => n.replace(/_/g, "") === c.name);
+        if (hinted) return hinted;
+    }
+    return names[0];
+};
 const BLACK = rgba(0, 0, 0, 255);
 
 const NAMED_COLORS = (() => {
@@ -292,7 +355,7 @@ const parseColor = (text, currentColor) => {
     if (s[0] === "#") return parseHexColor(s.substring(1));
     const lower = s.toLowerCase();
     if (lower === "currentcolor") return currentColor;
-    if (lower === "transparent") return rgba(0, 0, 0, 0);
+    if (lower === "transparent") return { ...rgba(0, 0, 0, 0), name: "transparent" };
     const paren = lower.indexOf("(");
     if (paren > 0 && lower.endsWith(")")) {
         const fn = lower.substring(0, paren).trim();
@@ -325,7 +388,8 @@ const parseColor = (text, currentColor) => {
         }
         return null;
     }
-    return NAMED_COLORS[lower] ?? null;
+    const named = NAMED_COLORS[lower];
+    return named ? { ...named, name: lower } : null;
 };
 
 // ---------------------------------------------------------------------------------------------
@@ -961,11 +1025,12 @@ class Generator {
         this.state = new Map();
         // plutovg path storage needed by the largest shape, in path elements
         this.maxPathElements = 0;
+        this.usesNamedColor = false; // emit the color_t alias only when something uses it
         this.stats = {
             shapes: 0, elements: 0, skippedElements: 0, groups: 0, gradients: 0, gradientFills: 0, gradientStrokes: 0,
             dashedStrokes: 0, cssRules: 0,
             byElement: {}, segments: { move: 0, line: 0, quad: 0, cubic: 0, arc: 0, close: 0 },
-            filled: 0, stroked: 0, colors: new Set(),
+            filled: 0, stroked: 0, colors: new Set(), namedColors: new Set(),
         };
     }
 
@@ -1024,9 +1089,19 @@ class Generator {
         // --- assemble the routine ---
         const fn = opt.functionName;
         const o = new CppWriter(opt.precision);
-        o.line("// Automatically generated by https://codewitch-honey-crisis.github.io/gfx_web/svg-gen")
+        o.line(`// Generated by svg2gfx from ${cppComment(opt.sourceName)}`);
         o.line("#pragma once");
-        o.line("#include <gfx.hpp>");
+        if (this.usesNamedColor) {
+            // gfx.hpp's named colors are C++17 inline constants; C++14 builds need gfx_cpp14.hpp,
+            // which defines them out of line (both share an include guard, so only one is used)
+            o.line("#if __cplusplus >= 201703L");
+            o.line("#include <gfx.hpp>");
+            o.line("#else");
+            o.line("#include <gfx_cpp14.hpp>");
+            o.line("#endif");
+        } else {
+            o.line("#include <gfx.hpp>");
+        }
         o.line("");
         o.line(`// Intrinsic size: ${fmt3(width)} x ${fmt3(height)}, ${this.stats.shapes} shape(s)`);
         o.line(`constexpr gfx::sizef ${fn}_dimensions(${o.F(width)}, ${o.F(height)});`);
@@ -1034,6 +1109,7 @@ class Generator {
         o.line("template <typename Destination>");
         o.line(`gfx::gfx_result ${fn}(Destination& destination, gfx::spoint16 location = gfx::spoint16(0, 0), const gfx::matrix& transform = gfx::matrix::create_identity()) {`);
         o.doIndent();
+        if (this.usesNamedColor) o.line("using color_t = gfx::color<gfx::vector_pixel>;");
         o.line("const gfx::size16 canvas_size = destination.dimensions();");
         o.line("if (canvas_size.width == 0 || canvas_size.height == 0) return gfx::gfx_result::success;");
         o.line("gfx::canvas cvs(canvas_size);");
@@ -1234,6 +1310,16 @@ class Generator {
         return rp;
     }
 
+    // A color as C++: color_t::name when it matches a gfx named color exactly, otherwise a raw vector_pixel.
+    colorCpp(c) {
+        this.stats.colors.add(rgbaKey(c));
+        const name = gfxColorName(c);
+        if (name === null) return rgbaToRawCpp(c);
+        this.stats.namedColors.add(rgbaKey(c)); // count values, like uniqueColors (aqua and cyan are one)
+        this.usesNamedColor = true;
+        return `color_t::${name}`;
+    }
+
     // Emits a setter only when it differs from what the canvas already holds.
     set(key, statement) {
         if (this.state.get(key) === statement) return;
@@ -1245,10 +1331,7 @@ class Generator {
         const w = this.w;
         w.line(`gfx::gradient_stop ${prefix}_stops[] = {`);
         w.doIndent();
-        for (const st of p.stops) {
-            w.line(`{${w.F(st.offset)}, ${rgbaToCpp(st.color)}},`);
-            this.stats.colors.add(rgbaToCpp(st.color));
-        }
+        for (const st of p.stops) w.line(`{${w.F(st.offset)}, ${this.colorCpp(st.color)}},`);
         w.outdent();
         w.line("};");
         w.line(`gfx::gradient ${prefix}_gradient;`);
@@ -1310,8 +1393,7 @@ class Generator {
                 break;
             case "color":
                 this.set("fill_paint_type", "cvs.fill_paint_type(gfx::paint_type::solid);");
-                this.set("fill_color", `cvs.fill_color(${rgbaToCpp(fill.color)});`);
-                stats.colors.add(rgbaToCpp(fill.color));
+                this.set("fill_color", `cvs.fill_color(${this.colorCpp(fill.color)});`);
                 break;
             case "url":
                 this.emitGradient("fill", fill);
@@ -1328,8 +1410,7 @@ class Generator {
                 break;
             case "color":
                 this.set("stroke_paint_type", "cvs.stroke_paint_type(gfx::paint_type::solid);");
-                this.set("stroke_color", `cvs.stroke_color(${rgbaToCpp(stroke.color)});`);
-                stats.colors.add(rgbaToCpp(stroke.color));
+                this.set("stroke_color", `cvs.stroke_color(${this.colorCpp(stroke.color)});`);
                 break;
             case "url":
                 this.emitGradient("stroke", stroke);
@@ -1495,6 +1576,7 @@ const finishStats = (stats, code) => {
         dashedStrokes: stats.dashedStrokes,
         cssRules: stats.cssRules,
         uniqueColors: stats.colors.size,
+        namedColors: stats.namedColors.size,
         codeLines: lines,
         codeBytes: new TextEncoder().encode(code).length,
     };
