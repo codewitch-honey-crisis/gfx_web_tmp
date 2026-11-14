@@ -268,15 +268,21 @@ const GFX_COLORS = (() => {
     }
     return m;
 })();
-// the gfx color name for an exact match, or null
-const gfxColorName = (c) => {
-    const names = GFX_COLORS.get(rgbaKey(c));
-    if (!names) return null;
-    if (c.name) {
-        const hinted = names.find((n) => n.replace(/_/g, "") === c.name);
+const pickGfxName = (names, hint) => {
+    if (hint) {
+        const hinted = names.find((n) => n.replace(/_/g, "") === hint);
         if (hinted) return hinted;
     }
     return names[0];
+};
+// A gfx named color expression (without the color_t:: prefix), or null:
+// an exact match gives "red"; an opaque named color with other alpha gives "red.opacity8(128)".
+const gfxColorExpr = (c) => {
+    const exact = GFX_COLORS.get(rgbaKey(c));
+    if (exact) return pickGfxName(exact, c.name);
+    if (c.a === 255) return null;
+    const opaque = GFX_COLORS.get(`${c.r},${c.g},${c.b},255`);
+    return opaque ? `${pickGfxName(opaque, c.name)}.opacity8(${c.a})` : null;
 };
 const BLACK = rgba(0, 0, 0, 255);
 
@@ -1310,10 +1316,11 @@ class Generator {
         return rp;
     }
 
-    // A color as C++: color_t::name when it matches a gfx named color exactly, otherwise a raw vector_pixel.
+    // A color as C++: color_t::name when its RGB matches a gfx named color (with .opacity8(a) when only
+    // the alpha differs), otherwise a raw vector_pixel.
     colorCpp(c) {
         this.stats.colors.add(rgbaKey(c));
-        const name = gfxColorName(c);
+        const name = gfxColorExpr(c);
         if (name === null) return rgbaToRawCpp(c);
         this.stats.namedColors.add(rgbaKey(c)); // count values, like uniqueColors (aqua and cyan are one)
         this.usesNamedColor = true;
